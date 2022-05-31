@@ -1,0 +1,107 @@
+{
+    "layers_ls" : [
+        {
+            "class_name" : "InputLayer",
+            "name" : "input_1",
+            "shape" : [
+                28,
+                28,
+                1
+            ],
+            "Neuron_count" : 784,
+            "Number of connections" : null,
+            "Number of multiplications" : 0,
+            "Number of additions" : 0
+        },
+        {
+            "class_name" : "Conv2D",
+            "name" : "conv2d",
+            "shape" : [
+                26,
+                26,
+                32
+            ],
+            "Neuron_count" : 21632,
+            "Number of connections" : 194688,
+            "Number of multiplications" : 194688,
+            "Number of additions" : 21632
+        },
+        {
+            "class_name" : "MaxPooling2D",
+            "name" : "max_pooling2d",
+            "shape" : [
+                13,
+                13,
+                32
+            ],
+            "Neuron_count" : 5408,
+            "Number of connections" : null,
+            "Number of multiplications" : 0,
+            "Number of additions" : 0
+        },
+        {
+            "class_name" : "Conv2D",
+            "name" : "conv2d_1",
+            "shape" : [
+                11,
+                11,
+                64
+            ],
+            "Neuron_count" : 7744,
+            "Number of connections" : 2230272,
+            "Number of multiplications" : 2230272,
+            "Number of additions" : 7744
+        },
+        {
+            "class_name" : "MaxPooling2D",
+            "name" : "max_pooling2d_1",
+            "shape" : [
+                5,
+                5,
+                64
+            ],
+            "Neuron_count" : 1600,
+            "Number of connections" : null,
+            "Number of multiplications" : 0,
+            "Number of additions" : 0
+        },
+        {
+            "class_name" : "Flatten",
+            "name" : "flatten",
+            "shape" : [
+                1600
+            ],
+            "Neuron_count" : 1600,
+            "Number of connections" : null,
+            "Number of multiplications" : 0,
+            "Number of additions" : 0
+        },
+        {
+            "class_name" : "Dropout",
+            "name" : "dropout",
+            "shape" : [
+                1600
+            ],
+            "Neuron_count" : 1600,
+            "Number of connections" : null,
+            "Number of multiplications" : 0,
+            "Number of additions" : 0
+        },
+        {
+            "class_name" : "Dense",
+            "name" : "dense",
+            "shape" : [
+                10
+            ],
+            "Neuron_count" : 10,
+            "Number of connections" : 16000,
+            "Number of multiplications" : 16000,
+            "Number of additions" : 10
+        }
+    ],
+    "layers_count" : 8,
+    "Total_neuron_count" : 40378,
+    "Total number of connections" : 2440960,
+    "Total number of multiplications" : 2440960,
+    "Total number of additions" : 29386
+}

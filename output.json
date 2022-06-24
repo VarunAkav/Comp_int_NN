@@ -35,9 +35,9 @@
                 32
             ],
             "Neuron_count" : 5408,
-            "Number of connections" : null,
+            "Number of connections" : 21632,
             "Number of multiplications" : 0,
-            "Number of additions" : 0
+            "Number of comparisions" : 3
         },
         {
             "class_name" : "Conv2D",
@@ -61,9 +61,9 @@
                 64
             ],
             "Neuron_count" : 1600,
-            "Number of connections" : null,
+            "Number of connections" : 6400,
             "Number of multiplications" : 0,
-            "Number of additions" : 0
+            "Number of comparisions" : 3
         },
         {
             "class_name" : "Flatten",
@@ -101,7 +101,8 @@
     ],
     "layers_count" : 8,
     "Total_neuron_count" : 40378,
-    "Total number of connections" : 2440960,
+    "Total number of connections" : 2468992,
     "Total number of multiplications" : 2440960,
-    "Total number of additions" : 29386
+    "Total number of additions" : 29386,
+    "Total number of comparisions" : 6
 }

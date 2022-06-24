@@ -13,8 +13,23 @@ for filepath in os.listdir('Models'):
         filename, ext = os.path.splitext(filepath)
         if ext == '.json':
             models_json_str[filename] = model_file.read()
-            
-class Model_Extract:
+
+# Special Layers
+MPOOL_LAYERS = ['MaxPooling1D','MaxPooling2D', 'MaxPooling3D']
+APOOL_LAYERS = ['AveragePooling1D', 'AveragePooling2D', 'AveragePooling3D']
+POOL_LAYERS = MPOOL_LAYERS + APOOL_LAYERS
+GMPOOL_LAYERS = ['GloabalMaxPooling1D','GloabalMaxPooling2D', 'GloabalMaxPooling3D']
+GAPOOL_LAYERS = ['GlobalAveragePooling1D', 'GlobalAveragePooling2D', 'GlobalAveragePooling3D']
+GPOOL_LAYERS = GMPOOL_LAYERS + GAPOOL_LAYERS
+
+class Model_Extractor:
+    MPOOL_LAYERS = ['MaxPooling1D','MaxPooling2D', 'MaxPooling3D']
+    APOOL_LAYERS = ['AveragePooling1D', 'AveragePooling2D', 'AveragePooling3D']
+    POOL_LAYERS = MPOOL_LAYERS + APOOL_LAYERS
+    GMPOOL_LAYERS = ['GloabalMaxPooling1D','GloabalMaxPooling2D', 'GloabalMaxPooling3D']
+    GAPOOL_LAYERS = ['GlobalAveragePooling1D', 'GlobalAveragePooling2D', 'GlobalAveragePooling3D']
+    GPOOL_LAYERS = GMPOOL_LAYERS + GAPOOL_LAYERS
+
     def __init__(self, model_json_str):
         self.model = model_from_json(model_json_str)
         self.model_json = json.loads(model_json_str)
@@ -24,12 +39,9 @@ class Model_Extract:
 
         self.make_target_layer_models()
         
-        self.get_layers()
-        self.get_layer_shape()
-        self.get_neurons()
-        self.get_connections()
-        self.get_multiplications()
-        self.get_additions()
+        self.get_output()
+        self.dump_output('output.json')
+        
         
     def get_layers(self):
         self.outputs['layers_ls'] = []
@@ -60,6 +72,9 @@ class Model_Extract:
             if layer == target_layer_json:
                 continue
             layer_model_json['config']['layers'].remove(layer)
+        
+        if "activation" in layer_model_json['config']['layers'][1]['config']:
+            layer_model_json['config']['layers'][1]['config']['activation'] = 'relu'
 
         layer_model = model_from_json(json.dumps(layer_model_json))
         return layer_model
@@ -70,7 +85,7 @@ class Model_Extract:
             target_layer_models[layer['config']['name']] = self.make_model_of_layer(layer)
         self.target_layer_models = target_layer_models
     
-    def get_layer_connections(self,target_layer_json: json):
+    def get_layer_connections(self,target_layer_json: json,layer_i: int):
         # layer_model = self.make_model_of_layer(target_layer_json)
         layer_model = self.target_layer_models[target_layer_json['config']['name']]
         input_shape = layer_model.layers[0].input_shape
@@ -84,24 +99,27 @@ class Model_Extract:
 
             features = extractor(np.zeros((1, *input_shape[1:]))+1)
             return features[0]
+        if target_layer_json['class_name'] in POOL_LAYERS:
+            pool_size = np.prod(target_layer_json['config']['pool_size'])
+            # print(pool_size)
+            no_of_neurons = self.outputs["layers_ls"][layer_i]["Neuron_count"]
+            # print(no_of_neurons*pool_size)
+            return no_of_neurons*pool_size
         return None
 
     def get_connections(self):
         # self.outputs['layers_ls'][0]['Layer connections'] = None
         self.outputs['layers_ls'][0]['Number of connections'] = None
         total_connections = 0
-        for layer, out_layer in zip(self.config['layers'][1:],self.outputs['layers_ls'][1:]):
+        for layer_i, (layer, out_layer) in enumerate(zip(self.config['layers'][1:],self.outputs['layers_ls'][1:]),start=1):
             # out_layer['Layer connections'] = self.get_layer_connections(layer)
-            out_layer['Number of connections'] = np.sum(self.get_layer_connections(layer))
+            out_layer['Number of connections'] = np.sum(self.get_layer_connections(layer,layer_i))
             if out_layer['Number of connections']:
+                out_layer['Number of connections'] = int(out_layer['Number of connections'])
                 total_connections += out_layer['Number of connections']
         self.outputs['Total number of connections'] = total_connections
     
-    def get_connections_per_neuron(self, target_layer_json: json):
-        # if target_layer_json['class_name'] == 'Dense':
-            pass
-    
-    def get_layer_multiplications(self, target_layer_json: json):
+    def get_layer_multiplications(self, target_layer_json: json, layer_i: int):
         layer_model = self.target_layer_models[target_layer_json['config']['name']]
         input_shape = layer_model.layers[0].input_shape
         if layer_model.get_weights():
@@ -113,19 +131,28 @@ class Model_Extract:
             extractor = tf.keras.Model(inputs=layer_model.inputs,outputs=layer_model.layers[0].output)
 
             features = extractor(np.zeros((1, *input_shape[1:]))+1)
-            return np.sum(features[0])
+            return int(np.sum(features[0]))
+        if target_layer_json['class_name'] in APOOL_LAYERS:
+            return 1
         return 0
 
     def get_multiplications(self):
         self.outputs['layers_ls'][0]['Number of multiplications'] = 0
         total_multiplications = 0
-        for layer, out_layer in zip(self.config['layers'][1:],self.outputs['layers_ls'][1:]):
+        total_divisions = 0
+        for layer_i, (layer, out_layer) in enumerate(zip(self.config['layers'][1:],self.outputs['layers_ls'][1:]),start=1):
             # out_layer['Layer connections'] = self.get_layer_connections(layer)
-            out_layer['Number of multiplications'] = self.get_layer_multiplications(layer)
-            total_multiplications += out_layer['Number of multiplications']
+            if layer['class_name'] in APOOL_LAYERS + GAPOOL_LAYERS:
+                # Returns number of divisions in AveragePool layers
+                out_layer['Number of divisions'] = self.get_layer_multiplications(layer,layer_i)
+                total_divisions += out_layer['Number of divisions']
+
+            else:
+                out_layer['Number of multiplications'] = self.get_layer_multiplications(layer,layer_i)
+                total_multiplications += out_layer['Number of multiplications']
         self.outputs['Total number of multiplications'] = total_multiplications
     
-    def get_layer_additions(self,target_layer_json: json):
+    def get_layer_additions(self,target_layer_json: json, layer_i):
         layer_model = self.target_layer_models[target_layer_json['config']['name']]
         input_shape = layer_model.layers[0].input_shape
         if layer_model.get_weights():
@@ -137,20 +164,54 @@ class Model_Extract:
             extractor = tf.keras.Model(inputs=layer_model.inputs,outputs=layer_model.layers[0].output)
 
             features = extractor(np.zeros((1, *input_shape[1:])))
-            return np.sum(features[0])
+            return int(np.sum(features[0]))
+        if target_layer_json['class_name'] in POOL_LAYERS:
+            # Returns the number of additions for AveragePool layers and number of comparisions in MaxPool layers
+            pool_size = np.prod(target_layer_json['config']['pool_size'])
+            return int(pool_size-1)
+        # if target_layer_json['class_name'] in MPOOL_LAYERS:
+
         return 0
         
     def get_additions(self):
         self.outputs['layers_ls'][0]['Number of additions'] = 0
         total_additions = 0
-        for layer, out_layer in zip(self.config['layers'][1:],self.outputs['layers_ls'][1:]):
+        total_comparisions = 0
+        # for layer, out_layer in zip(self.config['layers'][1:],self.outputs['layers_ls'][1:]):
+        for layer_i, (layer, out_layer) in enumerate(zip(self.config['layers'][1:],self.outputs['layers_ls'][1:]),start=1):
             # out_layer['Layer connections'] = self.get_layer_connections(layer)
-            out_layer['Number of additions'] = self.get_layer_additions(layer)
-            total_additions += out_layer['Number of additions']
+            if layer['class_name'] in MPOOL_LAYERS + GMPOOL_LAYERS:
+                # Records number of comparisions for MaxPool layers
+                out_layer['Number of comparisions'] = self.get_layer_additions(layer,layer_i)
+                total_comparisions += out_layer['Number of comparisions']
+            else:
+                # Records number of additions for AveragePool layers
+                out_layer['Number of additions'] = self.get_layer_additions(layer, layer_i)
+                total_additions += out_layer['Number of additions']
         self.outputs['Total number of additions'] = total_additions
+        self.outputs['Total number of comparisions'] = total_comparisions
 
-def main():
+    def get_output(self):
+        self.get_layers()
+        # print(self)
+        self.get_layer_shape()
+        self.get_neurons()
+        self.get_connections()
+        self.get_multiplications()
+        self.get_additions()
 
-    MNIST_convnet_extract = Model_Extract(models_json_str['Simple_MNIST_convnet'])
-    print(json.dumps(MNIST_convnet_extract.outputs, indent=4, separators=('', ' : ')))
+    def dump_output(self,filename):
+        # Saves the output in a given file
+        with open(filename,'w') as output_file:
+            json.dump((self.outputs),output_file,indent=4, separators=(',',' : '))
     
+def main():
+    MNIST_convnet_extractor = Model_Extractor(models_json_str['Simple_MNIST_convnet'])
+    # print(MNIST_convnet_extractor.outputs)
+    print(MNIST_convnet_extractor.model.layers[0].dtype)
+
+        # print((MNIST_convnet_extractor.outputs))
+        # MNIST_convnet_extractor.outputs
+
+if __name__ == "__main__":
+    main()

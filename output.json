@@ -27,62 +27,23 @@
             "Number of additions" : 21632
         },
         {
-            "class_name" : "MaxPooling2D",
-            "name" : "max_pooling2d",
+            "class_name" : "GlobalMaxPooling2D",
+            "name" : "global_max_pooling2d",
             "shape" : [
-                13,
-                13,
                 32
             ],
-            "Neuron_count" : 5408,
+            "Neuron_count" : 32,
             "Number of connections" : 21632,
             "Number of multiplications" : 0,
-            "Number of comparisions" : 3
-        },
-        {
-            "class_name" : "Conv2D",
-            "name" : "conv2d_1",
-            "shape" : [
-                11,
-                11,
-                64
-            ],
-            "Neuron_count" : 7744,
-            "Number of connections" : 2230272,
-            "Number of multiplications" : 2230272,
-            "Number of additions" : 7744
-        },
-        {
-            "class_name" : "MaxPooling2D",
-            "name" : "max_pooling2d_1",
-            "shape" : [
-                5,
-                5,
-                64
-            ],
-            "Neuron_count" : 1600,
-            "Number of connections" : 6400,
-            "Number of multiplications" : 0,
-            "Number of comparisions" : 3
-        },
-        {
-            "class_name" : "Flatten",
-            "name" : "flatten",
-            "shape" : [
-                1600
-            ],
-            "Neuron_count" : 1600,
-            "Number of connections" : null,
-            "Number of multiplications" : 0,
-            "Number of additions" : 0
+            "Number of comparisions" : 21600
         },
         {
             "class_name" : "Dropout",
             "name" : "dropout",
             "shape" : [
-                1600
+                32
             ],
-            "Neuron_count" : 1600,
+            "Neuron_count" : 32,
             "Number of connections" : null,
             "Number of multiplications" : 0,
             "Number of additions" : 0
@@ -94,15 +55,15 @@
                 10
             ],
             "Neuron_count" : 10,
-            "Number of connections" : 16000,
-            "Number of multiplications" : 16000,
+            "Number of connections" : 320,
+            "Number of multiplications" : 320,
             "Number of additions" : 10
         }
     ],
-    "layers_count" : 8,
-    "Total_neuron_count" : 40378,
-    "Total number of connections" : 2468992,
-    "Total number of multiplications" : 2440960,
-    "Total number of additions" : 29386,
-    "Total number of comparisions" : 6
+    "layers_count" : 5,
+    "Total_neuron_count" : 22490,
+    "Total number of connections" : 216640,
+    "Total number of multiplications" : 195008,
+    "Total number of additions" : 21642,
+    "Total number of comparisions" : 21600
 }

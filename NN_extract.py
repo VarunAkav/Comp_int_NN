@@ -17,30 +17,24 @@ for filepath in os.listdir('Models'):
 # Special Layers
 MPOOL_LAYERS = ['MaxPooling1D','MaxPooling2D', 'MaxPooling3D']
 APOOL_LAYERS = ['AveragePooling1D', 'AveragePooling2D', 'AveragePooling3D']
-POOL_LAYERS = MPOOL_LAYERS + APOOL_LAYERS
-GMPOOL_LAYERS = ['GloabalMaxPooling1D','GloabalMaxPooling2D', 'GloabalMaxPooling3D']
+NPOOL_LAYERS = MPOOL_LAYERS + APOOL_LAYERS
+GMPOOL_LAYERS = ['GlobalMaxPooling1D','GlobalMaxPooling2D', 'GlobalMaxPooling3D']
 GAPOOL_LAYERS = ['GlobalAveragePooling1D', 'GlobalAveragePooling2D', 'GlobalAveragePooling3D']
 GPOOL_LAYERS = GMPOOL_LAYERS + GAPOOL_LAYERS
+POOL_LAYERS = NPOOL_LAYERS + GPOOL_LAYERS
 
 class Model_Extractor:
-    MPOOL_LAYERS = ['MaxPooling1D','MaxPooling2D', 'MaxPooling3D']
-    APOOL_LAYERS = ['AveragePooling1D', 'AveragePooling2D', 'AveragePooling3D']
-    POOL_LAYERS = MPOOL_LAYERS + APOOL_LAYERS
-    GMPOOL_LAYERS = ['GloabalMaxPooling1D','GloabalMaxPooling2D', 'GloabalMaxPooling3D']
-    GAPOOL_LAYERS = ['GlobalAveragePooling1D', 'GlobalAveragePooling2D', 'GlobalAveragePooling3D']
-    GPOOL_LAYERS = GMPOOL_LAYERS + GAPOOL_LAYERS
 
-    def __init__(self, model_json_str):
+    def __init__(self, model_json_str, output_filename = 'output.json'):
         self.model = model_from_json(model_json_str)
         self.model_json = json.loads(model_json_str)
         self.config = self.model_json['config']
-        # self.target_layer_models = dict()
         self.outputs = dict()
 
         self.make_target_layer_models()
         
         self.get_output()
-        self.dump_output('output.json')
+        self.dump_output(output_filename)
         
         
     def get_layers(self):
@@ -86,7 +80,6 @@ class Model_Extractor:
         self.target_layer_models = target_layer_models
     
     def get_layer_connections(self,target_layer_json: json,layer_i: int):
-        # layer_model = self.make_model_of_layer(target_layer_json)
         layer_model = self.target_layer_models[target_layer_json['config']['name']]
         input_shape = layer_model.layers[0].input_shape
         if layer_model.get_weights():
@@ -99,20 +92,20 @@ class Model_Extractor:
 
             features = extractor(np.zeros((1, *input_shape[1:]))+1)
             return features[0]
-        if target_layer_json['class_name'] in POOL_LAYERS:
+        if target_layer_json['class_name'] in NPOOL_LAYERS:
             pool_size = np.prod(target_layer_json['config']['pool_size'])
-            # print(pool_size)
             no_of_neurons = self.outputs["layers_ls"][layer_i]["Neuron_count"]
-            # print(no_of_neurons*pool_size)
             return no_of_neurons*pool_size
+        if target_layer_json['class_name'] in GPOOL_LAYERS:
+            prev_layer_shape = self.outputs['layers_ls'][layer_i-1]['shape']
+            no_of_connections = int(np.prod(prev_layer_shape))
+            return no_of_connections
         return None
 
     def get_connections(self):
-        # self.outputs['layers_ls'][0]['Layer connections'] = None
         self.outputs['layers_ls'][0]['Number of connections'] = None
         total_connections = 0
         for layer_i, (layer, out_layer) in enumerate(zip(self.config['layers'][1:],self.outputs['layers_ls'][1:]),start=1):
-            # out_layer['Layer connections'] = self.get_layer_connections(layer)
             out_layer['Number of connections'] = np.sum(self.get_layer_connections(layer,layer_i))
             if out_layer['Number of connections']:
                 out_layer['Number of connections'] = int(out_layer['Number of connections'])
@@ -132,7 +125,7 @@ class Model_Extractor:
 
             features = extractor(np.zeros((1, *input_shape[1:]))+1)
             return int(np.sum(features[0]))
-        if target_layer_json['class_name'] in APOOL_LAYERS:
+        if target_layer_json['class_name'] in APOOL_LAYERS + GAPOOL_LAYERS:
             return 1
         return 0
 
@@ -154,6 +147,7 @@ class Model_Extractor:
     
     def get_layer_additions(self,target_layer_json: json, layer_i):
         layer_model = self.target_layer_models[target_layer_json['config']['name']]
+        cur_layer_output = self.outputs['layers_ls'][layer_i]
         input_shape = layer_model.layers[0].input_shape
         if layer_model.get_weights():
             weights_shape, biases_shape = layer_model.get_weights()
@@ -165,12 +159,15 @@ class Model_Extractor:
 
             features = extractor(np.zeros((1, *input_shape[1:])))
             return int(np.sum(features[0]))
-        if target_layer_json['class_name'] in POOL_LAYERS:
+        if target_layer_json['class_name'] in NPOOL_LAYERS:
             # Returns the number of additions for AveragePool layers and number of comparisions in MaxPool layers
-            pool_size = np.prod(target_layer_json['config']['pool_size'])
-            return int(pool_size-1)
-        # if target_layer_json['class_name'] in MPOOL_LAYERS:
-
+            pool_size = int(np.prod(target_layer_json['config']['pool_size']))
+            adds_per_neuron = pool_size - 1
+            no_of_neurons = cur_layer_output["Neuron_count"]
+            return adds_per_neuron*no_of_neurons
+        if target_layer_json['class_name'] in GPOOL_LAYERS:
+            # Number of additions or comparision in Global pool layers = Number of connection - Number of neurons
+            return cur_layer_output["Number of connections"] - cur_layer_output["Neuron_count"]
         return 0
         
     def get_additions(self):
@@ -204,11 +201,13 @@ class Model_Extractor:
         # Saves the output in a given file
         with open(filename,'w') as output_file:
             json.dump((self.outputs),output_file,indent=4, separators=(',',' : '))
+        print(f'\nSuccessfully dumped outputs to {filename}')
     
 def main():
-    MNIST_convnet_extractor = Model_Extractor(models_json_str['Simple_MNIST_convnet'])
+    # MNIST_convnet_extractor = Model_Extractor(models_json_str['Simple_MNIST_convnet'])
+    model_extractor = Model_Extractor(models_json_str['global_max_pool_model'])
     # print(MNIST_convnet_extractor.outputs)
-    print(MNIST_convnet_extractor.model.layers[0].dtype)
+    # print(model_extractor.model.layers[0].dtype)
 
         # print((MNIST_convnet_extractor.outputs))
         # MNIST_convnet_extractor.outputs

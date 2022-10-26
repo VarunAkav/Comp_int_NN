@@ -205,7 +205,7 @@ class Model_Extractor:
     
 def main():
     # MNIST_convnet_extractor = Model_Extractor(models_json_str['Simple_MNIST_convnet'])
-    model_extractor = Model_Extractor(models_json_str['global_max_pool_model'])
+    model_extractor = Model_Extractor(models_json_str['LSTMJson'])
     # print(MNIST_convnet_extractor.outputs)
     # print(model_extractor.model.layers[0].dtype)
 

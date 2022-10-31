@@ -1,3 +1,4 @@
+from this import d
 import tensorflow as tf
 from tensorflow.keras.models import load_model
 import json
@@ -26,12 +27,24 @@ class ModelSummary:
         self.multiplications = 0
         self.comparisions = 0
         self.connections = 0
+
+    def __dict__(self) -> dict:
+        return{
+            "class_name" : self.class_name,
+            "name" : self.name,
+            "layers" : [layer.__dict__() for layer in self.layers],
+            "neurons" : self.neurons,
+            "additions" : self.additions,
+            "multiplications" : self.multiplications,
+            "comparasions" : self.comparisions,
+            "connections" : self.connections,
+        }
     
     def __repr__(self):
         return json.dumps({
             "class_name" : self.class_name,
             "name" : self.name,
-            "layers" : self.layers,
+            "layers" : [layer.__dict__() for layer in self.layers],
             "neurons" : self.neurons,
             "additions" : self.additions,
             "multiplications" : self.multiplications,
@@ -50,6 +63,18 @@ class LayerSummary:
         self.comparisions = 0
         self.connections = 0
     
+    def __dict__(self) -> dict:
+        return {
+            "class_name" : self.class_name,
+            "name" : self.name,
+            "shape" : self.shape,
+            "neurons" : self.neurons,
+            "additions" : self.additions,
+            "multiplications" : self.multiplications,
+            "comparasions" : self.comparisions,
+            "connections" : self.connections,
+        }
+
     def __repr__(self):
         return json.dumps({
             "class_name" : self.class_name,
@@ -117,6 +142,10 @@ class ModelExtractor:
             [reduce(lambda x, y: x*y, lsummary.shape[i]) for i in range(len(lsummary.shape))])
 
         return lsummary
+
+if __name__ == '__main__':
+    ext = ModelExtractor('Models/mnist_convnet.h5')
+    print(ext.summary)
 
     '''
     def func(layer):

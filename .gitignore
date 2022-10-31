@@ -4,6 +4,7 @@ _*
 Python37/
 Other/
 .vscode
+__pycache__
 
 NN_model_generator.ipynb
 NN_extract.ipynb

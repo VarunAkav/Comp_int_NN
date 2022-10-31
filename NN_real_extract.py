@@ -30,8 +30,8 @@ class ModelSummary:
         self.comparisions = 0
         self.connections = 0
     
-    def toJson(self):
-        return {
+    def __repr__(self):
+        return json.dumps({
             "class_name" : self.class_name,
             "name" : self.name,
             "layers" : self.layers,
@@ -40,7 +40,7 @@ class ModelSummary:
             "multiplications" : self.multiplications,
             "comparasions" : self.comparisions,
             "connections" : self.connections,
-        }
+        },indent=4)
     
 class LayerSummary:
     def __init__(self) -> None:
@@ -53,8 +53,8 @@ class LayerSummary:
         self.comparisions = 0
         self.connections = 0
     
-    def toJson(self):
-        return {
+    def __repr__(self):
+        return json.dumps({
             "class_name" : self.class_name,
             "name" : self.name,
             "shape" : self.shape,
@@ -63,22 +63,28 @@ class LayerSummary:
             "multiplications" : self.multiplications,
             "comparasions" : self.comparisions,
             "connections" : self.connections,
-        }
+        },indent=4)
 
 class ModelExtractor:
+    layerMethods = dict()  # dict should contain methods which will return LayerSummary()
     
     def __init__(self, modelPath):
         self.model = load_model(modelPath)
-        self.summary = self.extract(self.model,None)
+        self.summary = self.extract(self.model)
         
         
-        self.layerMethods = dict()  # dict should contain methods which will return LayerSummary()
 
     def extract(self, model) -> ModelSummary:
         modelSummary = ModelSummary()
         modelSummary.class_name = model.__class__.__name__
         modelSummary.name = model.name
         
+        if modelSummary.class_name == 'Sequential':
+            summary = LayerSummary()
+            summary.class_name = 'InputLayer'
+            summary.name = 'inputLayer'
+            summary.shape = model.layers[0].input_shape[1:]
+            modelSummary.layers.append(summary)
         
         for layer in model.layers:
             if layer.__class__.__name__ in ['Sequential', 'Functional']:

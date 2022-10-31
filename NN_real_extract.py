@@ -118,7 +118,7 @@ class ModelExtractor:
 
         for layer in model.layers:
             if layer.__class__.__name__ in ['Sequential', 'Functional']:
-                summary = self.extract()
+                summary = self.extract(layer)
 
             else:
                 summary = LayerSummary()

@@ -86,7 +86,7 @@ class LayerSummary:
             "multiplications": self.multiplications,
             "comparasions": self.comparisions,
             "connections": self.connections,
-        }, indent=4, separators=(',', ':'))
+        }, indent=4)
 
 
 class ModelExtractor:

@@ -1,3 +1,4 @@
+from this import d
 import tensorflow as tf
 from tensorflow.keras.models import load_model
 import json
@@ -27,17 +28,29 @@ class ModelSummary:
         self.comparisions = 0
         self.connections = 0
 
-    def __repr__(self):
-        return json.dumps({
+    def __dict__(self) -> dict:
+        return{
             "class_name": self.class_name,
             "name": self.name,
-            "layers": [layer.__repr__() for layer in self.layers],
+            "layers": [layer.__dict__() for layer in self.layers],
             "neurons": self.neurons,
             "additions": self.additions,
             "multiplications": self.multiplications,
             "comparasions": self.comparisions,
             "connections": self.connections,
-        }, indent=4, separators=(',', ':'))
+        }
+
+    def __repr__(self):
+        return json.dumps({
+            "class_name": self.class_name,
+            "name": self.name,
+            "layers": [layer.__dict__() for layer in self.layers],
+            "neurons": self.neurons,
+            "additions": self.additions,
+            "multiplications": self.multiplications,
+            "comparasions": self.comparisions,
+            "connections": self.connections,
+        }, indent=4)
 
 
 class LayerSummary:
@@ -50,6 +63,18 @@ class LayerSummary:
         self.multiplications = 0
         self.comparisions = 0
         self.connections = 0
+
+    def __dict__(self) -> dict:
+        return {
+            "class_name": self.class_name,
+            "name": self.name,
+            "shape": self.shape,
+            "neurons": self.neurons,
+            "additions": self.additions,
+            "multiplications": self.multiplications,
+            "comparasions": self.comparisions,
+            "connections": self.connections,
+        }
 
     def __repr__(self):
         return json.dumps({
@@ -159,6 +184,11 @@ class ModelExtractor:
         lsummary.comparisions = 0
 
         return lsummary
+
+
+if __name__ == '__main__':
+    ext = ModelExtractor('Models/mnist_convnet.h5')
+    print(ext.summary)
 
     '''
     def func(layer):

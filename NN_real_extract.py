@@ -156,7 +156,7 @@ class ModelExtractor:
 
         if(type(layer.output_shape) == type([])):
             lsummary.shape = [eachoutput[1:]
-                              for eachoutput in layer.output_shape]
+                              for eachoutput in layer.output_shape]  # [(2,3),(2,3)]
             lsummary.neurons = sum(
                 [reduce(lambda x, y: x*y, lsummary.shape[i]) for i in range(len(lsummary.shape))])
         else:
@@ -166,7 +166,30 @@ class ModelExtractor:
         return lsummary
 
     def conv1DSummary(self, layer):
-        pass
+
+        config = layer.get_config()
+        lsummary = LayerSummary()
+        lsummary.class_name = layer.__class__.__name__
+        lsummary.name = layer.name
+
+        if(type(layer.output_shape) == type([])):
+            lsummary.shape = [eachoutput[1:]
+                              for eachoutput in layer.output_shape]
+            lsummary.neurons = sum(
+                [reduce(lambda x, y: x*y, lsummary.shape[i]) for i in range(len(lsummary.shape))])
+        else:
+            lsummary.shape = layer.output_shape[1:]
+            lsummary.neurons = reduce(lambda x, y: x*y, lsummary.shape)
+
+        channels = layer.input_shape[-2] if config['data_format'] == 'channels_first' else layer.input_shape[-1]
+        kernel_size = config['kernel_size'][0]
+        lsummary.additions = lsummary.neurons*channels * \
+            kernel_size if config['use-bias'] else (
+                lsummary.neurons-1)*channels*kernel_size
+        lsummary.multiplications = lsummary.neurons*channels*kernel_size
+        lsummary.connections = lsummary.neurons*channels*kernel_size
+
+        return lsummary
 
     def conv2DSummary(self, layer):
         pass
@@ -213,37 +236,37 @@ class ModelExtractor:
     def resizingSummary(self, layer):
         pass
 
-    # def convSummary(self, layer):
-    #     # We can formulate this and improve the speed
-    #     lsummary = LayerSummary()
+    def convSummary(self, layer):
+        # We can formulate this and improve the speed
+        lsummary = LayerSummary()
 
-    #     lsummary.class_name = layer.__class__.__name__
-    #     lsummary.name = layer.name
+        lsummary.class_name = layer.__class__.__name__
+        lsummary.name = layer.name
 
-    #     if(type(layer.output_shape) == type([])):
-    #         lsummary.shape = [eachoutput[1:]
-    #                           for eachoutput in layer.output_shape]
-    #         lsummary.neurons = sum(
-    #             [reduce(lambda x, y: x*y, lsummary.shape[i]) for i in range(len(lsummary.shape))])
-    #     else:
-    #         lsummary.shape = layer.output_shape[1:]
-    #         lsummary.neurons = reduce(lambda x, y: x*y, lsummary.shape)
+        if(type(layer.output_shape) == type([])):
+            lsummary.shape = [eachoutput[1:]
+                              for eachoutput in layer.output_shape]
+            lsummary.neurons = sum(
+                [reduce(lambda x, y: x*y, lsummary.shape[i]) for i in range(len(lsummary.shape))])
+        else:
+            lsummary.shape = layer.output_shape[1:]
+            lsummary.neurons = reduce(lambda x, y: x*y, lsummary.shape)
 
-    #     layercopy = deepcopy(layer)
+        layercopy = deepcopy(layer)
 
-    #     # no of additions will be equal to number of multiplications in conv layers
-    #     layercopy.set_weights(
-    #         [np.ones(layer.weights[0].shape), np.zeros(layer.weights[1].shape)])
+        # no of additions will be equal to number of multiplications in conv layers
+        layercopy.set_weights(
+            [np.ones(layer.weights[0].shape), np.zeros(layer.weights[1].shape)])
 
-    #     lsummary.additions = int(tf.math.reduce_sum(
-    #         layercopy(np.ones((1, *layer.input_shape[1:])))))
-    #     lsummary.multiplications = lsummary.additions
+        lsummary.additions = int(tf.math.reduce_sum(
+            layercopy(np.ones((1, *layer.input_shape[1:])))))
+        lsummary.multiplications = lsummary.additions
 
-    #     lsummary.connections = lsummary.neurons * \
-    #         reduce(lambda x, y: x*y, layer.kernel_size)
-    #     lsummary.comparisions = 0
+        lsummary.connections = lsummary.neurons * \
+            reduce(lambda x, y: x*y, layer.kernel_size)
+        lsummary.comparisions = 0
 
-    #     return lsummary
+        return lsummary
 
 
 if __name__ == '__main__':

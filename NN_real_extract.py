@@ -172,14 +172,8 @@ class ModelExtractor:
         lsummary.class_name = layer.__class__.__name__
         lsummary.name = layer.name
 
-        if(type(layer.output_shape) == type([])):
-            lsummary.shape = [eachoutput[1:]
-                              for eachoutput in layer.output_shape]
-            lsummary.neurons = sum(
-                [reduce(lambda x, y: x*y, lsummary.shape[i]) for i in range(len(lsummary.shape))])
-        else:
-            lsummary.shape = layer.output_shape[1:]
-            lsummary.neurons = reduce(lambda x, y: x*y, lsummary.shape)
+        lsummary.shape = layer.output_shape[1:]
+        lsummary.neurons = reduce(lambda x, y: x*y, lsummary.shape)
 
         channels = layer.input_shape[-2] if config['data_format'] == 'channels_first' else layer.input_shape[-1]
         kernel_size = config['kernel_size'][0]
@@ -197,6 +191,20 @@ class ModelExtractor:
     def conv3DSummary(self, layer):
         pass
 
+    def denseSummary(self, layer):
+        lsummary = LayerSummary()
+        lsummary.class_name = layer.__class__.__name__
+        lsummary.name = layer.name
+        lsummary.shape = layer.output_shape[1:]
+        lsummary.neurons = layer.get_config['units']
+        lsummary.additions = layer.input_shape[-1] * \
+            lsummary.neurons if layer.get_config['use_bias'] else layer.input_shape[-1]*(
+                lsummary.neurons-1)
+        lsummary.multiplications = layer.input_shape[-1]*lsummary.neurons
+        lsummary.connections = layer.input_shape[-1]*lsummary.neurons
+
+        return lsummary
+
     def maxPooling1DSummary(self, layer):
         pass
 
@@ -204,9 +212,6 @@ class ModelExtractor:
         pass
 
     def maxPooling3DSummary(self, layer):
-        pass
-
-    def denseSummary(self, layer):
         pass
 
     def averageSummary(self, layer):

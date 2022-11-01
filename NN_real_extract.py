@@ -93,8 +93,8 @@ class ModelExtractor:
     def __init__(self, modelPath):
         self.layerMethods = {
             'InputLayer': self.inputSummary,
-            # 'Dense': self.denseSummary,
             'Flatten': self.flattenSummary,
+            'Dense': self.denseSummary,
             'Conv1D': self.conv1DSummary,
             'Conv2D': self.conv2DSummary,
             'Conv3D': self.conv3DSummary,
@@ -174,14 +174,8 @@ class ModelExtractor:
         lsummary.class_name = layer.__class__.__name__
         lsummary.name = layer.name
 
-        if(type(layer.output_shape) == type([])):
-            lsummary.shape = [eachoutput[1:]
-                              for eachoutput in layer.output_shape]
-            lsummary.neurons = sum(
-                [reduce(lambda x, y: x*y, lsummary.shape[i]) for i in range(len(lsummary.shape))])
-        else:
-            lsummary.shape = layer.output_shape[1:]
-            lsummary.neurons = reduce(lambda x, y: x*y, lsummary.shape)
+        lsummary.shape = layer.output_shape[1:]
+        lsummary.neurons = reduce(lambda x, y: x*y, lsummary.shape)
 
         channels = layer.input_shape[-2] if config['data_format'] == 'channels_first' else layer.input_shape[-1]
         kernel_size = config['kernel_size'][0]
@@ -193,39 +187,54 @@ class ModelExtractor:
 
         return lsummary
 
-    def conv2DSummary(self, layer:Conv2D) -> LayerSummary:
+    def conv2DSummary(self, layer: Conv2D) -> LayerSummary:
         summary = LayerSummary()
         summary.class_name = layer.__class__.__name__
         summary.name = layer.name
         summary.shape = layer.output_shape[-3:]
-        summary.neurons = reduce(lambda x,y:x*y,summary.shape)
+        summary.neurons = reduce(lambda x, y: x*y, summary.shape)
         # finding number of additions
         config = layer.get_config()
-        channels = layer.input_shape[-1 if config['data_format'] == 'channels_last' else -3]
-        kernel_nodes = reduce(lambda x,y:x*y,config['kernel_size'])
+        channels = layer.input_shape[-1 if config['data_format']
+                                     == 'channels_last' else -3]
+        kernel_nodes = reduce(lambda x, y: x*y, config['kernel_size'])
         summary.additions = summary.neurons*kernel_nodes*channels
         if config['use_bias'] == False:
             summary.additions -= summary.neurons
         summary.multiplications = summary.neurons*kernel_nodes*channels
         summary.connections = summary.neurons*kernel_nodes*channels
-        
+
         return summary
 
-
-    def conv3DSummary(self, layer:Conv3D) -> LayerSummary:
+    def conv3DSummary(self, layer: Conv3D) -> LayerSummary:
         summary = LayerSummary()
         summary.class_name = layer.__class__.__name__
         summary.name = layer.name
         summary.shape = layer.output_shape[-4:]
-        summary.neurons = reduce(lambda x,y:x*y,summary.shape)
+        summary.neurons = reduce(lambda x, y: x*y, summary.shape)
         config = layer.get_config()
-        channels = layer.input_shape[-1 if config['data_format'] == 'channels_last' else -4]
-        kernel_nodes = reduce(lambda x,y:x*y,config['kernel_size'])
+        channels = layer.input_shape[-1 if config['data_format']
+                                     == 'channels_last' else -4]
+        kernel_nodes = reduce(lambda x, y: x*y, config['kernel_size'])
         summary.additions = summary.neurons*kernel_nodes*channels
         if config['use_bias'] == False:
             summary.additions -= summary.neurons
         summary.multiplications = summary.neurons*kernel_nodes*channels
         summary.connections = summary.neurons*kernel_nodes*channels
+
+    def denseSummary(self, layer):
+        lsummary = LayerSummary()
+        lsummary.class_name = layer.__class__.__name__
+        lsummary.name = layer.name
+        lsummary.shape = layer.output_shape[1:]
+        lsummary.neurons = layer.get_config['units']
+        lsummary.additions = layer.input_shape[-1] * \
+            lsummary.neurons if layer.get_config['use_bias'] else layer.input_shape[-1]*(
+                lsummary.neurons-1)
+        lsummary.multiplications = layer.input_shape[-1]*lsummary.neurons
+        lsummary.connections = layer.input_shape[-1]*lsummary.neurons
+
+        return lsummary
 
     def maxPooling1DSummary(self, layer):
         pass
@@ -234,9 +243,6 @@ class ModelExtractor:
         pass
 
     def maxPooling3DSummary(self, layer):
-        pass
-
-    def denseSummary(self, layer):
         pass
 
     def averageSummary(self, layer):

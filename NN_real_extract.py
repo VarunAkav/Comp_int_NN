@@ -93,11 +93,11 @@ class ModelExtractor:
     def __init__(self, modelPath):
         self.layerMethods = {
             'InputLayer': self.inputSummary,
-            # 'Dense': self.denseSummary,
+            'Dense': self.denseSummary,
             # 'Flatten': self.flattenSummary,
             'Conv1D': self.conv1DSummary,
             'Conv2D': self.conv2DSummary,
-            # 'Conv3D': self.conv3DSummary,
+            'Conv3D': self.conv3DSummary,
             # 'MaxPooling1D': self.maxPooling1DSummary,
             # 'MaxPooling2D': self.maxPooling2DSummary,
             # 'MaxPooling3D': self.maxPooling3DSummary,
@@ -187,34 +187,35 @@ class ModelExtractor:
 
         return lsummary
 
-    def conv2DSummary(self, layer:Conv2D) -> LayerSummary:
+    def conv2DSummary(self, layer: Conv2D) -> LayerSummary:
         summary = LayerSummary()
         summary.class_name = layer.__class__.__name__
         summary.name = layer.name
         summary.shape = layer.output_shape[-3:]
-        summary.neurons = reduce(lambda x,y:x*y,summary.shape)
+        summary.neurons = reduce(lambda x, y: x*y, summary.shape)
         # finding number of additions
         config = layer.get_config()
-        channels = layer.input_shape[-1 if config['data_format'] == 'channels_last' else -3]
-        kernel_nodes = reduce(lambda x,y:x*y,config['kernel_size'])
+        channels = layer.input_shape[-1 if config['data_format']
+                                     == 'channels_last' else -3]
+        kernel_nodes = reduce(lambda x, y: x*y, config['kernel_size'])
         summary.additions = summary.neurons*kernel_nodes*channels
         if config['use_bias'] == False:
             summary.additions -= summary.neurons
         summary.multiplications = summary.neurons*kernel_nodes*channels
         summary.connections = summary.neurons*kernel_nodes*channels
-        
+
         return summary
 
-
-    def conv3DSummary(self, layer:Conv3D) -> LayerSummary:
+    def conv3DSummary(self, layer: Conv3D) -> LayerSummary:
         summary = LayerSummary()
         summary.class_name = layer.__class__.__name__
         summary.name = layer.name
         summary.shape = layer.output_shape[-4:]
-        summary.neurons = reduce(lambda x,y:x*y,summary.shape)
+        summary.neurons = reduce(lambda x, y: x*y, summary.shape)
         config = layer.get_config()
-        channels = layer.input_shape[-1 if config['data_format'] == 'channels_last' else -4]
-        kernel_nodes = reduce(lambda x,y:x*y,config['kernel_size'])
+        channels = layer.input_shape[-1 if config['data_format']
+                                     == 'channels_last' else -4]
+        kernel_nodes = reduce(lambda x, y: x*y, config['kernel_size'])
         summary.additions = summary.neurons*kernel_nodes*channels
         if config['use_bias'] == False:
             summary.additions -= summary.neurons

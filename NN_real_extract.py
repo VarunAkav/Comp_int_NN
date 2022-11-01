@@ -7,8 +7,7 @@ from functools import reduce
 import numpy as np
 from copy import deepcopy
 
-# All the models from the Models folder will be stored in a dictionary
-# model.layers[7]._inbound_nodes[0].inbound_layers for getting the predecessor layers
+
 modelPaths = dict()
 for filepath in os.listdir('Models'):
     filename, ext = os.path.splitext(filepath)
@@ -93,10 +92,23 @@ class ModelExtractor:
 
     def __init__(self, modelPath):
         self.layerMethods = {
-            'Conv2D': self.convSummary,
-            'Conv1D': self.convSummary,
-            'Conv3D': self.convSummary,
-            'InputLayer': self.inputSummary
+            'InputLayer': self.inputSummary,
+            'Dense': self.denseSummary,
+            'Flatten': self.flattenSummary,
+            'Conv1D': self.conv1DSummary,
+            'Conv2D': self.conv2DSummary,
+            'Conv3D': self.conv3DSummary,
+            'MaxPooling1D': self.maxPooling1DSummary,
+            'MaxPooling2D': self.maxPooling2DSummary,
+            'MaxPooling3D': self.maxPooling3DSummary,
+            'Average': self.averageSummary,
+            'Add': self.addSummary,
+            'Subtract': self.subtractSummary,
+            'Dot': self.dotSummary,
+            'Minimum': self.minimumSummary,
+            'Maximum': self.maximumSummary,
+            'Rescaling': self.rescalingSummary,
+            'Resizing': self.resizingSummary
 
         }
 
@@ -153,37 +165,85 @@ class ModelExtractor:
 
         return lsummary
 
-    def convSummary(self, layer):
-        # We can formulate this and improve the speed
-        lsummary = LayerSummary()
+    def conv1DSummary(self, layer):
+        pass
 
-        lsummary.class_name = layer.__class__.__name__
-        lsummary.name = layer.name
+    def conv2DSummary(self, layer):
+        pass
 
-        if(type(layer.output_shape) == type([])):
-            lsummary.shape = [eachoutput[1:]
-                              for eachoutput in layer.output_shape]
-            lsummary.neurons = sum(
-                [reduce(lambda x, y: x*y, lsummary.shape[i]) for i in range(len(lsummary.shape))])
-        else:
-            lsummary.shape = layer.output_shape[1:]
-            lsummary.neurons = reduce(lambda x, y: x*y, lsummary.shape)
+    def conv3DSummary(self, layer):
+        pass
 
-        layercopy = deepcopy(layer)
+    def maxPooling1DSummary(self, layer):
+        pass
 
-        # no of additions will be equal to number of multiplications in conv layers
-        layercopy.set_weights(
-            [np.ones(layer.weights[0].shape), np.zeros(layer.weights[1].shape)])
+    def maxPooling2DSummary(self, layer):
+        pass
 
-        lsummary.additions = int(tf.math.reduce_sum(
-            layercopy(np.ones((1, *layer.input_shape[1:])))))
-        lsummary.multiplications = lsummary.additions
+    def maxPooling3DSummary(self, layer):
+        pass
 
-        lsummary.connections = lsummary.neurons * \
-            reduce(lambda x, y: x*y, layer.kernel_size)
-        lsummary.comparisions = 0
+    def denseSummary(self, layer):
+        pass
 
-        return lsummary
+    def averageSummary(self, layer):
+        pass
+
+    def addSummary(self, layer):
+        pass
+
+    def subtractSummary(self, layer):
+        pass
+
+    def dotSummary(self, layer):
+        pass
+
+    def minimumSummary(self, layer):
+        pass
+
+    def maximumSummary(self, layer):
+        pass
+
+    def flattenSummary(self, layer):
+        pass
+
+    def rescalingSummary(self, layer):
+        pass
+
+    def resizingSummary(self, layer):
+        pass
+
+    # def convSummary(self, layer):
+    #     # We can formulate this and improve the speed
+    #     lsummary = LayerSummary()
+
+    #     lsummary.class_name = layer.__class__.__name__
+    #     lsummary.name = layer.name
+
+    #     if(type(layer.output_shape) == type([])):
+    #         lsummary.shape = [eachoutput[1:]
+    #                           for eachoutput in layer.output_shape]
+    #         lsummary.neurons = sum(
+    #             [reduce(lambda x, y: x*y, lsummary.shape[i]) for i in range(len(lsummary.shape))])
+    #     else:
+    #         lsummary.shape = layer.output_shape[1:]
+    #         lsummary.neurons = reduce(lambda x, y: x*y, lsummary.shape)
+
+    #     layercopy = deepcopy(layer)
+
+    #     # no of additions will be equal to number of multiplications in conv layers
+    #     layercopy.set_weights(
+    #         [np.ones(layer.weights[0].shape), np.zeros(layer.weights[1].shape)])
+
+    #     lsummary.additions = int(tf.math.reduce_sum(
+    #         layercopy(np.ones((1, *layer.input_shape[1:])))))
+    #     lsummary.multiplications = lsummary.additions
+
+    #     lsummary.connections = lsummary.neurons * \
+    #         reduce(lambda x, y: x*y, layer.kernel_size)
+    #     lsummary.comparisions = 0
+
+    #     return lsummary
 
 
 if __name__ == '__main__':

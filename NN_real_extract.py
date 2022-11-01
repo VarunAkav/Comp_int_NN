@@ -1,4 +1,4 @@
-from this import d
+from keras.layers import *
 import tensorflow as tf
 from tensorflow.keras.models import load_model
 import json
@@ -93,22 +93,22 @@ class ModelExtractor:
     def __init__(self, modelPath):
         self.layerMethods = {
             'InputLayer': self.inputSummary,
-            'Dense': self.denseSummary,
-            'Flatten': self.flattenSummary,
+            # 'Dense': self.denseSummary,
+            # 'Flatten': self.flattenSummary,
             'Conv1D': self.conv1DSummary,
             'Conv2D': self.conv2DSummary,
-            'Conv3D': self.conv3DSummary,
-            'MaxPooling1D': self.maxPooling1DSummary,
-            'MaxPooling2D': self.maxPooling2DSummary,
-            'MaxPooling3D': self.maxPooling3DSummary,
-            'Average': self.averageSummary,
-            'Add': self.addSummary,
-            'Subtract': self.subtractSummary,
-            'Dot': self.dotSummary,
-            'Minimum': self.minimumSummary,
-            'Maximum': self.maximumSummary,
-            'Rescaling': self.rescalingSummary,
-            'Resizing': self.resizingSummary
+            # 'Conv3D': self.conv3DSummary,
+            # 'MaxPooling1D': self.maxPooling1DSummary,
+            # 'MaxPooling2D': self.maxPooling2DSummary,
+            # 'MaxPooling3D': self.maxPooling3DSummary,
+            # 'Average': self.averageSummary,
+            # 'Add': self.addSummary,
+            # 'Subtract': self.subtractSummary,
+            # 'Dot': self.dotSummary,
+            # 'Minimum': self.minimumSummary,
+            # 'Maximum': self.maximumSummary,
+            # 'Rescaling': self.rescalingSummary,
+            # 'Resizing': self.resizingSummary
 
         }
 
@@ -134,6 +134,8 @@ class ModelExtractor:
 
             else:
                 summary = LayerSummary()
+                summary.class_name = layer.__class__.__name__
+                summary.name = layer.name
                 if layer.__class__.__name__ in self.layerMethods:
                     summary = self.layerMethods[layer.__class__.__name__](
                         layer)
@@ -178,18 +180,46 @@ class ModelExtractor:
         channels = layer.input_shape[-2] if config['data_format'] == 'channels_first' else layer.input_shape[-1]
         kernel_size = config['kernel_size'][0]
         lsummary.additions = lsummary.neurons*channels * \
-            kernel_size if config['use-bias'] else (
+            kernel_size if config['use_bias'] else (
                 lsummary.neurons-1)*channels*kernel_size
         lsummary.multiplications = lsummary.neurons*channels*kernel_size
         lsummary.connections = lsummary.neurons*channels*kernel_size
 
         return lsummary
 
-    def conv2DSummary(self, layer):
-        pass
+    def conv2DSummary(self, layer:Conv2D) -> LayerSummary:
+        summary = LayerSummary()
+        summary.class_name = layer.__class__.__name__
+        summary.name = layer.name
+        summary.shape = layer.output_shape[-3:]
+        summary.neurons = reduce(lambda x,y:x*y,summary.shape)
+        # finding number of additions
+        config = layer.get_config()
+        channels = layer.input_shape[-1 if config['data_format'] == 'channels_last' else -3]
+        kernel_nodes = reduce(lambda x,y:x*y,config['kernel_size'])
+        summary.additions = summary.neurons*kernel_nodes*channels
+        if config['use_bias'] == False:
+            summary.additions -= summary.neurons
+        summary.multiplications = summary.neurons*kernel_nodes*channels
+        summary.connections = summary.neurons*kernel_nodes*channels
+        
+        return summary
 
-    def conv3DSummary(self, layer):
-        pass
+
+    def conv3DSummary(self, layer:Conv3D) -> LayerSummary:
+        summary = LayerSummary()
+        summary.class_name = layer.__class__.__name__
+        summary.name = layer.name
+        summary.shape = layer.output_shape[-4:]
+        summary.neurons = reduce(lambda x,y:x*y,summary.shape)
+        config = layer.get_config()
+        channels = layer.input_shape[-1 if config['data_format'] == 'channels_last' else -4]
+        kernel_nodes = reduce(lambda x,y:x*y,config['kernel_size'])
+        summary.additions = summary.neurons*kernel_nodes*channels
+        if config['use_bias'] == False:
+            summary.additions -= summary.neurons
+        summary.multiplications = summary.neurons*kernel_nodes*channels
+        summary.connections = summary.neurons*kernel_nodes*channels
 
     def denseSummary(self, layer):
         lsummary = LayerSummary()
@@ -275,7 +305,7 @@ class ModelExtractor:
 
 
 if __name__ == '__main__':
-    ext = ModelExtractor('Models/mnist_convnet.h5')
+    ext = ModelExtractor('Models/Conv1DTest.h5')
     print(ext.summary)
 
     '''

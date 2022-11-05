@@ -222,7 +222,7 @@ class ModelExtractor:
         summary.class_name = layer.__class__.__name__
         summary.name = layer.name
         summary.shape = layer.output_shape[1:]
-        summary.neurons = layer.get_config['units']
+        summary.neurons = reduce(lambda x,y:x*y, summary.shape)
         summary.additions = layer.input_shape[-1] * summary.neurons if layer.get_config['use_bias'] else layer.input_shape[-1]*(summary.neurons-1)
         summary.multiplications = layer.input_shape[-1]*summary.neurons
         summary.connections = layer.input_shape[-1]*summary.neurons

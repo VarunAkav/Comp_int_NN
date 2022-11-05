@@ -245,6 +245,7 @@ class ModelExtractor:
         config = layer.get_config
         summary.connections = summary.neurons*config['pool_size']
         summary.comparisions = (config['pool_size']-1)*summary.neurons
+
         return summary
 
     def maxPooling2DSummary(self, layer: MaxPooling2D)->LayerSummary:
@@ -270,6 +271,42 @@ class ModelExtractor:
         summary.comparisions = summary.neurons*(reduce(lambda x,y: x*y, config['pool_size'])-1)
         return summary
 
+    def globalMaxPooling1DSummary(self, layer: GlobalMaxPooling1D)-> LayerSummary:
+
+        summary = LayerSummary()
+        summary.class_name = layer.__class__.__name__
+        summary.name = layer.name
+        summary.shape = layer.output_shape[1:]
+        summary.neurons = reduce(lambda x, y: x*y, summary.shape)
+        config = layer.get_config
+        summary.connections = reduce(lambda x,y: x*y, layer.input_shape[1:])
+        summary.comparisions = summary.connections - summary.neurons
+        return summary
+
+    def globalMaxPooling2DSummary(self, layer: GlobalMaxPooling2D)-> LayerSummary:
+        
+        summary = LayerSummary()
+        summary.class_name = layer.__class__.__name__
+        summary.name = layer.name
+        summary.shape = layer.output_shape[1:]
+        summary.neurons = reduce(lambda x,y: x*y, summary.shape)
+        config = layer.get_config
+        summary.connections = reduce(lambda x,y:x*y, layer.input_shape[1:])
+        summary.comparisions = summary.connections - summary.neurons
+        return summary
+    
+    def globalMaxPooling3DSummary(self, layer: GlobalMaxPooling3D)-> LayerSummary:
+        
+        summary = LayerSummary()
+        summary.class_name = layer.__class__.__name__
+        summary.name = layer.name
+        summary.shape = layer.output_shape[1:]
+        summary.neurons = reduce(lambda x,y: x*y, summary.shape)
+        config = layer.get_config
+        summary.connections = reduce(lambda x,y:x*y, layer.input_shape[1:])
+        summary.comparisions = summary.connections - summary.neurons
+        return summary
+
     def averagePooling1DSummary(self, layer:AveragePooling1D) -> LayerSummary:
         summary = LayerSummary()
         summary.class_name = layer.__class__.__name__
@@ -288,6 +325,7 @@ class ModelExtractor:
         summary.class_name = layer.__class__.__name__
         summary.name = layer.name
         summary.shape = layer.output_shape[1:]
+        summary.shape = layer.output_shape[1:]
         summary.neurons = reduce(lambda x, y: x*y, summary.shape)
         config = layer.get_config
         pool_nodes = reduce(lambda x, y: x*y, config['pool_size'])
@@ -302,6 +340,7 @@ class ModelExtractor:
         summary.class_name = layer.__class__.__name__
         summary.name = layer.name
         summary.shape = layer.output_shape[1:]
+        summary.shape = layer.output_shape[1:]
         summary.neurons = reduce(lambda x, y: x*y, summary.shape)
         config = layer.get_config
         pool_nodes = reduce(lambda x, y: x*y, config['pool_size'])
@@ -311,59 +350,6 @@ class ModelExtractor:
         
         return summary
     
-    def globalAveragePooling1DSummary(self,layer: GlobalAveragePooling1D) -> LayerSummary:
-        summary = LayerSummary()
-        summary.class_name = layer.__class__.__name__
-        summary.name = layer.name
-        summary.shape = layer.output_shape[1:]
-        summary.neurons = reduce(lambda x, y: x*y, summary.shape)
-        config = layer.get_config
-        data_format = config['data_format']
-        steps = layer.input_shape[1 if data_format == 'channels_last' else 2]
-        summary.additions = summary.neurons*(steps-1)
-        summary.connections = summary.neurons*steps
-        summary.divisions = summary.neurons
-
-        return summary
-
-    def globalAveragePooling2DSummary(self,layer: GlobalAveragePooling2D) -> LayerSummary:
-        summary = LayerSummary()
-        summary.class_name = layer.__class__.__name__
-        summary.name = layer.name
-        summary.shape = layer.output_shape[1:]
-        summary.neurons = reduce(lambda x, y: x*y, summary.shape)
-        config = layer.get_config
-        data_format = config['data_format']
-        if data_format == 'channels_last':
-            input_dim = layer.input_shape[1:2]
-        else:
-            input_dim = layer.input_shape[2:3]
-        input_nodes = input_dim[0]*input_dim[1]
-        summary.additions = summary.neurons*(input_nodes-1)
-        summary.connections = summary.neurons*input_nodes
-        summary.divisions = summary.neurons
-
-        return summary
-
-    def globalAveragePooling3DSummary(self,layer: GlobalAveragePooling3D) -> LayerSummary:
-        summary = LayerSummary()
-        summary.class_name = layer.__class__.__name__
-        summary.name = layer.name
-        summary.shape = layer.output_shape[1:]
-        summary.neurons = reduce(lambda x, y: x*y, summary.shape)
-        config = layer.get_config
-        data_format = config['data_format']
-        if data_format == 'channels_last':
-            input_dim = layer.input_shape[1:3]
-        else:
-            input_dim = layer.input_shape[2:4]
-        input_nodes = input_dim[0]*input_dim[1]*input_dim[2]
-        summary.additions = summary.neurons*(input_nodes-1)
-        summary.connections = summary.neurons*input_nodes
-        summary.divisions = summary.neurons
-
-        return summary
-
     def averageSummary(self, layer):
         pass
 
@@ -386,7 +372,7 @@ class ModelExtractor:
         summary = LayerSummary()
         summary.class_name = layer.__class__.__name__
         summary.name = layer.name
-        summary.shape = layer.output_shape[1:]
+        summary.shape = layer.output_shape
         summary.neurons = summary.shape[0]
         summary.connections = summary.neurons
         

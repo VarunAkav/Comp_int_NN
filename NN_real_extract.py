@@ -93,8 +93,8 @@ class ModelExtractor:
     def __init__(self, modelPath):
         self.layerMethods = {
             'InputLayer': self.inputSummary,
+            'Flatten': self.flattenSummary,
             'Dense': self.denseSummary,
-            # 'Flatten': self.flattenSummary,
             'Conv1D': self.conv1DSummary,
             'Conv2D': self.conv2DSummary,
             'Conv3D': self.conv3DSummary,
@@ -280,8 +280,11 @@ class ModelExtractor:
     def maximumSummary(self, layer):
         pass
 
-    def flattenSummary(self, layer):
-        pass
+    def flattenSummary(self, layer:Flatten) -> LayerSummary:
+        summary = LayerSummary()
+        summary.class_name = layer.__class__.__name__
+        summary.name = layer.name
+        return summary
 
     def rescalingSummary(self, layer):
         pass

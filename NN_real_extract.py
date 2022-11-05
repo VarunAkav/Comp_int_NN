@@ -329,6 +329,10 @@ class ModelExtractor:
         summary = LayerSummary()
         summary.class_name = layer.__class__.__name__
         summary.name = layer.name
+        summary.shape = layer.output_shape
+        summary.neurons = summary.shape[0]
+        summary.connections = summary.neurons
+        
         return summary
 
     def rescalingSummary(self, layer):

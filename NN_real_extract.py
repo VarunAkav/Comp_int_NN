@@ -264,6 +264,49 @@ class ModelExtractor:
         summary.comparisions = summary.neurons*(reduce(lambda x,y: x*y, config['pool_size'])-1)
         return summary
 
+    def averagePooling1DSummary(self, layer:AveragePooling1D) -> LayerSummary:
+        summary = LayerSummary()
+        summary.class_name = layer.__class__.__name__
+        summary.name = layer.name
+        summary.shape = layer.output_shape[1:]
+        summary.neurons = reduce(lambda x, y: x*y, summary.shape)
+        config = layer.get_config
+        summary.additions = summary.neurons*(config['pool_size']-1)
+        summary.connections = summary.neurons*config['pool_size']
+        summary.divisions = summary.neurons
+
+        return summary
+    
+    def averagePooling2DSummary(self,layer: AveragePooling2D) -> LayerSummary:
+        summary = LayerSummary()
+        summary.class_name = layer.__class__.__name__
+        summary.name = layer.name
+        summary.shape = layer.output_shape[1:]
+        summary.shape = layer.output_shape[1:]
+        summary.neurons = reduce(lambda x, y: x*y, summary.shape)
+        config = layer.get_config
+        pool_nodes = reduce(lambda x, y: x*y, config['pool_size'])
+        summary.additions = summary.neurons*(pool_nodes-1)
+        summary.connections = summary.neurons*(pool_nodes)
+        summary.divisions = summary.neurons
+
+        return summary
+        
+    def averagePooling3DSummary(self,layer: AveragePooling3D) -> LayerSummary:
+        summary = LayerSummary()
+        summary.class_name = layer.__class__.__name__
+        summary.name = layer.name
+        summary.shape = layer.output_shape[1:]
+        summary.shape = layer.output_shape[1:]
+        summary.neurons = reduce(lambda x, y: x*y, summary.shape)
+        config = layer.get_config
+        pool_nodes = reduce(lambda x, y: x*y, config['pool_size'])
+        summary.additions = summary.neurons*(pool_nodes-1)
+        summary.connections = summary.neurons*(pool_nodes)
+        summary.divisions = summary.neurons
+        
+        return summary
+
     def averageSummary(self, layer):
         pass
 

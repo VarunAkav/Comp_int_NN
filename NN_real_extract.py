@@ -24,6 +24,7 @@ class ModelSummary:
         self.neurons = 0
         self.additions = 0
         self.multiplications = 0
+        self.divisions = 0
         self.comparisions = 0
         self.connections = 0
 
@@ -60,6 +61,7 @@ class LayerSummary:
         self.neurons = 0
         self.additions = 0
         self.multiplications = 0
+        self.divisions = 0
         self.comparisions = 0
         self.connections = 0
 

@@ -11,7 +11,7 @@ from copy import deepcopy
 modelPaths = dict()
 for filepath in os.listdir('Models'):
     filename, ext = os.path.splitext(filepath)
-    if ext == '.h5':
+    if ext in ['.h5','.pb']:
         modelPaths[filename] = os.path.join('Models', filepath)
 
 
@@ -125,6 +125,10 @@ class ModelExtractor:
 
         self.model = load_model(modelPath)
         self.summary = self.extract(self.model)
+
+    def to_json(self,filepath='output.json'):
+        with open(filepath,'w') as f:
+            f.write(str(self.summary))
 
     def extract(self, model) -> ModelSummary:
         modelSummary = ModelSummary()
@@ -439,7 +443,8 @@ class ModelExtractor:
 
 
 if __name__ == '__main__':
-    ext = ModelExtractor('Models/tf_model.h5')
+    ext = ModelExtractor('Models/Conv1DTest.h5')
+    ext.to_json()
     print(ext.summary)
 
     '''

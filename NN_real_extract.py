@@ -439,7 +439,7 @@ class ModelExtractor:
 
 
 if __name__ == '__main__':
-    ext = ModelExtractor('Models/Conv1DTest.h5')
+    ext = ModelExtractor('Models/tf_model.h5')
     print(ext.summary)
 
     '''

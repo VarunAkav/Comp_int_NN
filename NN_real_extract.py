@@ -1,6 +1,7 @@
 from keras.layers import *
 import tensorflow as tf
 from tensorflow.keras.models import load_model
+from tensorflow.saved_model import load
 import json
 import os
 from functools import reduce
@@ -122,8 +123,11 @@ class ModelExtractor:
             # 'Resizing': self.resizingSummary
 
         }
-
-        self.model = load_model(modelPath)
+        filename, ext = os.path.splitext(filepath)
+        if ext == '.h5':
+            self.model = load_model(modelPath)
+        else:
+            self.model = load(modelPath)
         self.summary = self.extract(self.model)
 
     def to_json(self,filepath='output.json'):

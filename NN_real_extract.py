@@ -11,7 +11,7 @@ from copy import deepcopy
 modelPaths = dict()
 for filepath in os.listdir('Models'):
     filename, ext = os.path.splitext(filepath)
-    if ext == '.h5':
+    if ext in ['.h5','.pb']:
         modelPaths[filename] = os.path.join('Models', filepath)
 
 

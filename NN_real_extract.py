@@ -126,6 +126,10 @@ class ModelExtractor:
         self.model = load_model(modelPath)
         self.summary = self.extract(self.model)
 
+    def to_json(self,filepath='output.json'):
+        with open(filepath,'w') as f:
+            f.write(str(self.summary))
+
     def extract(self, model) -> ModelSummary:
         modelSummary = ModelSummary()
         modelSummary.class_name = model.__class__.__name__
@@ -440,6 +444,7 @@ class ModelExtractor:
 
 if __name__ == '__main__':
     ext = ModelExtractor('Models/Conv1DTest.h5')
+    ext.to_json()
     print(ext.summary)
 
     '''

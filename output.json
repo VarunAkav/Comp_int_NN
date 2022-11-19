@@ -1,69 +1,52 @@
 {
-    "layers_ls" : [
+    "class_name": "Functional",
+    "name": "model_2",
+    "layers": [
         {
-            "class_name" : "InputLayer",
-            "name" : "input_1",
-            "shape" : [
-                28,
-                28,
-                1
+            "class_name": "InputLayer",
+            "name": "input_3",
+            "shape": [
+                [
+                    10,
+                    128
+                ]
             ],
-            "Neuron_count" : 784,
-            "Number of connections" : null,
-            "Number of multiplications" : 0,
-            "Number of additions" : 0
+            "neurons": 1280,
+            "additions": 0,
+            "multiplications": 0,
+            "comparasions": 0,
+            "connections": 0
         },
         {
-            "class_name" : "Conv2D",
-            "name" : "conv2d",
-            "shape" : [
-                26,
-                26,
-                32
+            "class_name": "Conv1D",
+            "name": "conv1d_4",
+            "shape": [
+                8,
+                5
             ],
-            "Neuron_count" : 21632,
-            "Number of connections" : 194688,
-            "Number of multiplications" : 194688,
-            "Number of additions" : 21632
+            "neurons": 40,
+            "additions": 15360,
+            "multiplications": 15360,
+            "comparasions": 0,
+            "connections": 15360
         },
         {
-            "class_name" : "GlobalMaxPooling2D",
-            "name" : "global_max_pooling2d",
-            "shape" : [
-                32
-            ],
-            "Neuron_count" : 32,
-            "Number of connections" : 21632,
-            "Number of multiplications" : 0,
-            "Number of comparisions" : 21600
-        },
-        {
-            "class_name" : "Dropout",
-            "name" : "dropout",
-            "shape" : [
-                32
-            ],
-            "Neuron_count" : 32,
-            "Number of connections" : null,
-            "Number of multiplications" : 0,
-            "Number of additions" : 0
-        },
-        {
-            "class_name" : "Dense",
-            "name" : "dense",
-            "shape" : [
+            "class_name": "Conv1D",
+            "name": "conv1d_5",
+            "shape": [
+                6,
                 10
             ],
-            "Neuron_count" : 10,
-            "Number of connections" : 320,
-            "Number of multiplications" : 320,
-            "Number of additions" : 10
+            "neurons": 60,
+            "additions": 900,
+            "multiplications": 900,
+            "comparasions": 0,
+            "connections": 900
         }
     ],
-    "layers_count" : 5,
-    "Total_neuron_count" : 22490,
-    "Total number of connections" : 216640,
-    "Total number of multiplications" : 195008,
-    "Total number of additions" : 21642,
-    "Total number of comparisions" : 21600
+    "neurons": 1380,
+    "additions": 16260,
+    "multiplications": 16260,
+    "comparasions": 0,
+    "connections": 16260
 }

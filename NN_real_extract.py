@@ -6,8 +6,8 @@ import json
 import os
 from functools import reduce
 import numpy as np
-from copy import deepcopy
-
+import shutil
+import csv
 
 modelPaths = dict()
 for filepath in os.listdir('Models'):
@@ -53,6 +53,22 @@ class ModelSummary:
             "connections": self.connections,
         }, indent=4)
 
+    def save_as_csv(self):
+        #check if the dir "export_csv" exists
+        csvFileName = self.name + '.csv'
+        dirpath = os.path.join(os.path.dirname(__file__), "export_csv")
+        if(not os.path.exists(dirpath)):
+            os.mkdir(dirpath)
+        with open(os.path.join(dirpath, csvFileName), 'w') as f:    
+            writer = csv.writer(f)
+            header = ['Layer_no', 'Layer_class','Layer_name', 'Neurons', 'Additions', 'Multiplications', 'Divisions', 'Comparasions', 'Connections']
+            writer.writerow(header)
+            for i,layer in enumerate(self.layers):
+                if(layer.class_name == 'ModelSummary'):
+                    layer.save_as_csv()
+                row = [i, layer.class_name, layer.name, layer.neurons, layer.additions, layer.multiplications, layer.divisions, layer.comparisions, layer.connections]
+                writer.writerow(row)
+            f.close()
 
 class LayerSummary:
     def __init__(self) -> None:
@@ -133,6 +149,7 @@ class ModelExtractor:
     def to_json(self,filepath='output.json'):
         with open(filepath,'w') as f:
             f.write(str(self.summary))
+    
 
     def extract(self, model) -> ModelSummary:
         modelSummary = ModelSummary()
@@ -166,6 +183,8 @@ class ModelExtractor:
 
         return modelSummary
 
+
+
     def inputSummary(self, layer: InputLayer) -> LayerSummary:
         summary = LayerSummary()
 
@@ -185,7 +204,6 @@ class ModelExtractor:
 
     def conv1DSummary(self, layer: Conv1D) -> LayerSummary:
 
-        config = layer.get_config()
         summary = LayerSummary()
         summary.class_name = layer.__class__.__name__
         summary.name = layer.name
@@ -193,9 +211,9 @@ class ModelExtractor:
         summary.shape = layer.output_shape[1:]
         summary.neurons = reduce(lambda x, y: x*y, summary.shape)
 
-        channels = layer.input_shape[-2] if config['data_format'] =='channels_first' else layer.input_shape[-1]
-        kernel_size = config['kernel_size'][0]
-        summary.additions = summary.neurons*channels * kernel_size if config['use_bias'] else (summary.neurons-1)*channels*kernel_size
+        channels = layer.input_shape[-2] if layer.data_format =='channels_first' else layer.input_shape[-1]
+        kernel_size = layer.kernel_size[0]
+        summary.additions = summary.neurons*channels * kernel_size if layer.use_bias else (summary.neurons-1)*channels*kernel_size
         summary.multiplications = summary.neurons*channels*kernel_size
         summary.connections = summary.neurons*channels*kernel_size
 
@@ -208,11 +226,10 @@ class ModelExtractor:
         summary.shape = layer.output_shape[-3:]
         summary.neurons = reduce(lambda x, y: x*y, summary.shape)
         # finding number of additions
-        config = layer.get_config()
-        channels = layer.input_shape[-1 if config['data_format'] == 'channels_last' else -3]
-        kernel_nodes = reduce(lambda x, y: x*y, config['kernel_size'])
+        channels = layer.input_shape[-1 if layer.data_format == 'channels_last' else -3]
+        kernel_nodes = reduce(lambda x, y: x*y, layer.kernel_size)
         summary.additions = summary.neurons*kernel_nodes*channels
-        if config['use_bias'] == False:
+        if layer.use_bias == False:
             summary.additions -= summary.neurons
         summary.multiplications = summary.neurons*kernel_nodes*channels
         summary.connections = summary.neurons*kernel_nodes*channels
@@ -225,11 +242,10 @@ class ModelExtractor:
         summary.name = layer.name
         summary.shape = layer.output_shape[-4:]
         summary.neurons = reduce(lambda x, y: x*y, summary.shape)
-        config = layer.get_config()
-        channels = layer.input_shape[-1 if config['data_format'] == 'channels_last' else -4]
-        kernel_nodes = reduce(lambda x, y: x*y, config['kernel_size'])
+        channels = layer.input_shape[-1 if layer.data_format == 'channels_last' else -4]
+        kernel_nodes = reduce(lambda x, y: x*y, layer.kernel_size)
         summary.additions = summary.neurons*kernel_nodes*channels
-        if config['use_bias'] == False:
+        if layer.use_bias == False:
             summary.additions -= summary.neurons
         summary.multiplications = summary.neurons*kernel_nodes*channels
         summary.connections = summary.neurons*kernel_nodes*channels
@@ -240,7 +256,7 @@ class ModelExtractor:
         summary.name = layer.name
         summary.shape = layer.output_shape[1:]
         summary.neurons = reduce(lambda x,y:x*y, summary.shape)
-        summary.additions = layer.input_shape[-1] * summary.neurons if layer.get_config['use_bias'] else layer.input_shape[-1]*(summary.neurons-1)
+        summary.additions = layer.input_shape[-1] * summary.neurons if layer.use_bias else layer.input_shape[-1]*(summary.neurons-1)
         summary.multiplications = layer.input_shape[-1]*summary.neurons
         summary.connections = layer.input_shape[-1]*summary.neurons
 
@@ -253,9 +269,8 @@ class ModelExtractor:
         summary.name = layer.name
         summary.shape = layer.output_shape[1:]
         summary.neurons = reduce(lambda x, y: x*y, summary.shape)
-        config = layer.get_config
-        summary.connections = summary.neurons*config['pool_size']
-        summary.comparisions = (config['pool_size']-1)*summary.neurons
+        summary.connections = summary.neurons*layer.pool_size
+        summary.comparisions = (layer.pool_size-1)*summary.neurons
         return summary
 
     def maxPooling2DSummary(self, layer: MaxPooling2D)->LayerSummary:
@@ -265,9 +280,8 @@ class ModelExtractor:
         summary.name = layer.name
         summary.shape = layer.output_shape[1:]
         summary.neurons = reduce(lambda x,y: x*y, summary.shape)
-        config = layer.get_config
-        summary.connections = summary.neurons*reduce(lambda x, y: x*y, config['pool_size'])
-        summary.comparisions = summary.neurons*(reduce(lambda x,y: x*y, config['pool_size'])-1)
+        summary.connections = summary.neurons*reduce(lambda x, y: x*y, layer.pool_size)
+        summary.comparisions = summary.neurons*(reduce(lambda x,y: x*y, layer.pool_size)-1)
         return summary
 
     def maxPooling3DSummary(self, layer: MaxPooling3D)-> LayerSummary: 
@@ -276,9 +290,8 @@ class ModelExtractor:
         summary.name = layer.name
         summary.shape = layer.output_shape[1:]
         summary.neurons = reduce(lambda x,y: x*y, summary.shape)
-        config = layer.get_config
-        summary.connections = summary.neurons*reduce(lambda x,y:x*y, config['pool_size'])
-        summary.comparisions = summary.neurons*(reduce(lambda x,y: x*y, config['pool_size'])-1)
+        summary.connections = summary.neurons*reduce(lambda x,y:x*y, layer.pool_size)
+        summary.comparisions = summary.neurons*(reduce(lambda x,y: x*y, layer.pool_size)-1)
         return summary
 
     def averagePooling1DSummary(self, layer:AveragePooling1D) -> LayerSummary:
@@ -287,9 +300,8 @@ class ModelExtractor:
         summary.name = layer.name
         summary.shape = layer.output_shape[1:]
         summary.neurons = reduce(lambda x, y: x*y, summary.shape)
-        config = layer.get_config
-        summary.additions = summary.neurons*(config['pool_size']-1)
-        summary.connections = summary.neurons*config['pool_size']
+        summary.additions = summary.neurons*(layer.pool_size-1)
+        summary.connections = summary.neurons*layer.pool_size
         summary.divisions = summary.neurons
 
         return summary
@@ -300,8 +312,7 @@ class ModelExtractor:
         summary.name = layer.name
         summary.shape = layer.output_shape[1:]
         summary.neurons = reduce(lambda x, y: x*y, summary.shape)
-        config = layer.get_config
-        pool_nodes = reduce(lambda x, y: x*y, config['pool_size'])
+        pool_nodes = reduce(lambda x, y: x*y, layer.pool_size)
         summary.additions = summary.neurons*(pool_nodes-1)
         summary.connections = summary.neurons*(pool_nodes)
         summary.divisions = summary.neurons
@@ -314,8 +325,7 @@ class ModelExtractor:
         summary.name = layer.name
         summary.shape = layer.output_shape[1:]
         summary.neurons = reduce(lambda x, y: x*y, summary.shape)
-        config = layer.get_config
-        pool_nodes = reduce(lambda x, y: x*y, config['pool_size'])
+        pool_nodes = reduce(lambda x, y: x*y, layer.pool_size)
         summary.additions = summary.neurons*(pool_nodes-1)
         summary.connections = summary.neurons*(pool_nodes)
         summary.divisions = summary.neurons
@@ -329,7 +339,6 @@ class ModelExtractor:
         summary.name = layer.name
         summary.shape = layer.output_shape[1:]
         summary.neurons = reduce(lambda x, y: x*y, summary.shape)
-        config = layer.get_config
         summary.connections = reduce(lambda x,y: x*y, layer.input_shape[1:])
         summary.comparisions = summary.connections - summary.neurons
         return summary
@@ -341,7 +350,6 @@ class ModelExtractor:
         summary.name = layer.name
         summary.shape = layer.output_shape[1:]
         summary.neurons = reduce(lambda x,y: x*y, summary.shape)
-        config = layer.get_config
         summary.connections = reduce(lambda x,y:x*y, layer.input_shape[1:])
         summary.comparisions = summary.connections - summary.neurons
         return summary
@@ -353,7 +361,6 @@ class ModelExtractor:
         summary.name = layer.name
         summary.shape = layer.output_shape[1:]
         summary.neurons = reduce(lambda x,y: x*y, summary.shape)
-        config = layer.get_config
         summary.connections = reduce(lambda x,y:x*y, layer.input_shape[1:])
         summary.comparisions = summary.connections - summary.neurons
         return summary
@@ -364,8 +371,7 @@ class ModelExtractor:
         summary.name = layer.name
         summary.shape = layer.output_shape[1:]
         summary.neurons = reduce(lambda x, y: x*y, summary.shape)
-        config = layer.get_config
-        data_format = config['data_format']
+        data_format = layer.data_format
         steps = layer.input_shape[1 if data_format == 'channels_last' else 2]
         summary.additions = summary.neurons*(steps-1)
         summary.connections = summary.neurons*steps
@@ -379,12 +385,12 @@ class ModelExtractor:
         summary.name = layer.name
         summary.shape = layer.output_shape[1:]
         summary.neurons = reduce(lambda x, y: x*y, summary.shape)
-        config = layer.get_config
-        data_format = config['data_format']
+        data_format = layer.data_format
+        #TODO: check the input_dim (possibly wrong)
         if data_format == 'channels_last':
-            input_dim = layer.input_shape[1:2]
+            input_dim = layer.input_shape[1:3]
         else:
-            input_dim = layer.input_shape[2:3]
+            input_dim = layer.input_shape[2:4]
         input_nodes = input_dim[0]*input_dim[1]
         summary.additions = summary.neurons*(input_nodes-1)
         summary.connections = summary.neurons*input_nodes
@@ -398,8 +404,7 @@ class ModelExtractor:
         summary.name = layer.name
         summary.shape = layer.output_shape[1:]
         summary.neurons = reduce(lambda x, y: x*y, summary.shape)
-        config = layer.get_config
-        data_format = config['data_format']
+        data_format = layer.data_format
         if data_format == 'channels_last':
             input_dim = layer.input_shape[1:3]
         else:
@@ -447,8 +452,11 @@ class ModelExtractor:
 
 
 if __name__ == '__main__':
-    ext = ModelExtractor('Models/Conv1DTest.h5')
-    ext.to_json()
+    exportdirpath = os.path.join(os.path.dirname(__file__), 'export_csv')
+    if(os.path.exists(exportdirpath)):
+        shutil.rmtree(exportdirpath)
+    ext = ModelExtractor('Models/mnist_convnet.h5')
+    ext.summary.save_as_csv()
     print(ext.summary)
 
     '''

@@ -64,7 +64,7 @@ class ModelSummary:
             header = ['Layer_no', 'Layer_class','Layer_name', 'Neurons', 'Additions', 'Multiplications', 'Divisions', 'Comparasions', 'Connections']
             writer.writerow(header)
             for i,layer in enumerate(self.layers):
-                if(layer.class_name == 'ModelSummary'):
+                if(layer.__class__.__name__ == 'ModelSummary'):
                     layer.save_as_csv()
                 row = [i, layer.class_name, layer.name, layer.neurons, layer.additions, layer.multiplications, layer.divisions, layer.comparisions, layer.connections]
                 writer.writerow(row)

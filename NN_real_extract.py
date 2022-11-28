@@ -90,6 +90,7 @@ class LayerSummary:
             "neurons": self.neurons,
             "additions": self.additions,
             "multiplications": self.multiplications,
+            "divisions": self.divisions,
             "comparasions": self.comparisions,
             "connections": self.connections,
         }
@@ -102,6 +103,7 @@ class LayerSummary:
             "neurons": self.neurons,
             "additions": self.additions,
             "multiplications": self.multiplications,
+            "divisions": self.divisions,
             "comparasions": self.comparisions,
             "connections": self.connections,
         }, indent=4)

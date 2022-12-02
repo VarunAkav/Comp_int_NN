@@ -28,6 +28,8 @@ class ModelSummary:
         self.divisions = 0
         self.comparisions = 0
         self.connections = 0
+        self.weights = 0
+        self.biases = 0
 
     def __dict__(self) -> dict:
         return{
@@ -37,8 +39,11 @@ class ModelSummary:
             "neurons": self.neurons,
             "additions": self.additions,
             "multiplications": self.multiplications,
+            "divisions": self.divisions,
             "comparasions": self.comparisions,
             "connections": self.connections,
+            "weights": self.weights,
+            "biases": self.biases,
         }
 
     def __repr__(self):
@@ -49,8 +54,11 @@ class ModelSummary:
             "neurons": self.neurons,
             "additions": self.additions,
             "multiplications": self.multiplications,
+            "divisions": self.divisions,
             "comparasions": self.comparisions,
             "connections": self.connections,
+            "weights": self.weights,
+            "biases": self.biases,
         }, indent=4)
 
     def save_as_csv(self):
@@ -81,6 +89,8 @@ class LayerSummary:
         self.divisions = 0
         self.comparisions = 0
         self.connections = 0
+        self.weights = 0
+        self.biases = 0
 
     def __dict__(self) -> dict:
         return {
@@ -93,6 +103,8 @@ class LayerSummary:
             "divisions": self.divisions,
             "comparasions": self.comparisions,
             "connections": self.connections,
+            "weights": self.weights,
+            "biases": self.biases,
         }
 
     def __repr__(self):
@@ -106,6 +118,8 @@ class LayerSummary:
             "divisions": self.divisions,
             "comparasions": self.comparisions,
             "connections": self.connections,
+            "weights": self.weights,
+            "biases": self.biases,
         }, indent=4)
 
 

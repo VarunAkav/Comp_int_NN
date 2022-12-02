@@ -194,8 +194,11 @@ class ModelExtractor:
             modelSummary.neurons += summary.neurons
             modelSummary.additions += summary.additions
             modelSummary.multiplications += summary.multiplications
+            modelSummary.divisions += summary.divisions
             modelSummary.comparisions += summary.comparisions
             modelSummary.connections += summary.connections
+            modelSummary.weights += summary.weights
+            modelSummary.biases += summary.biases
             modelSummary.layers.append(summary)
 
         return modelSummary
@@ -233,6 +236,8 @@ class ModelExtractor:
         summary.additions = summary.neurons*channels * kernel_size if layer.use_bias else (summary.neurons-1)*channels*kernel_size
         summary.multiplications = summary.neurons*channels*kernel_size
         summary.connections = summary.neurons*channels*kernel_size
+        summary.weights = int(tf.size(layer.weights[0]))
+        summary.biases = int(tf.size(layer.weights[1]))
 
         return summary
 
@@ -250,6 +255,8 @@ class ModelExtractor:
             summary.additions -= summary.neurons
         summary.multiplications = summary.neurons*kernel_nodes*channels
         summary.connections = summary.neurons*kernel_nodes*channels
+        summary.weights = int(tf.size(layer.weights[0]))
+        summary.biases = int(tf.size(layer.weights[1]))
 
         return summary
 
@@ -266,6 +273,8 @@ class ModelExtractor:
             summary.additions -= summary.neurons
         summary.multiplications = summary.neurons*kernel_nodes*channels
         summary.connections = summary.neurons*kernel_nodes*channels
+        summary.weights = int(tf.size(layer.weights[0]))
+        summary.biases = int(tf.size(layer.weights[1]))
 
     def denseSummary(self, layer: Dense) -> LayerSummary:
         summary = LayerSummary()
@@ -276,6 +285,8 @@ class ModelExtractor:
         summary.additions = layer.input_shape[-1] * summary.neurons if layer.use_bias else layer.input_shape[-1]*(summary.neurons-1)
         summary.multiplications = layer.input_shape[-1]*summary.neurons
         summary.connections = layer.input_shape[-1]*summary.neurons
+        summary.weights = int(tf.size(layer.weights[0]))
+        summary.biases = int(tf.size(layer.weights[1]))
 
         return summary
 

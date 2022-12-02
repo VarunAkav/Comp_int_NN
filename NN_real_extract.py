@@ -1,7 +1,6 @@
 from keras.layers import *
 import tensorflow as tf
 from tensorflow.keras.models import load_model
-from tensorflow.saved_model import load
 import json
 import os
 from functools import reduce
@@ -12,7 +11,7 @@ import csv
 modelPaths = dict()
 for filepath in os.listdir('Models'):
     filename, ext = os.path.splitext(filepath)
-    if ext in ['.h5','.pb']:
+    if ext in ['.h5']:
         modelPaths[filename] = os.path.join('Models', filepath)
 
 
@@ -144,8 +143,6 @@ class ModelExtractor:
         filename, ext = os.path.splitext(filepath)
         if ext == '.h5':
             self.model = load_model(modelPath)
-        else:
-            self.model = load(modelPath)
         self.summary = self.extract(self.model)
 
     def to_json(self,filepath='output.json'):
@@ -388,7 +385,6 @@ class ModelExtractor:
         summary.shape = layer.output_shape[1:]
         summary.neurons = reduce(lambda x, y: x*y, summary.shape)
         data_format = layer.data_format
-        #TODO: check the input_dim (possibly wrong)
         if data_format == 'channels_last':
             input_dim = layer.input_shape[1:3]
         else:

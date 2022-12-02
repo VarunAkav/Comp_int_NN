@@ -12,7 +12,7 @@ import csv
 modelPaths = dict()
 for filepath in os.listdir('Models'):
     filename, ext = os.path.splitext(filepath)
-    if ext in ['.h5','.pb']:
+    if ext in ['.h5','']:
         modelPaths[filename] = os.path.join('Models', filepath)
 
 
@@ -141,11 +141,12 @@ class ModelExtractor:
             # 'Resizing': self.resizingSummary
 
         }
-        filename, ext = os.path.splitext(filepath)
-        if ext == '.h5':
-            self.model = load_model(modelPath)
-        else:
-            self.model = load(modelPath)
+        self.model = load_model(modelPath)
+        # filename, ext = os.path.splitext(filepath)
+        # if ext == '.h5':
+        #     self.model = load_model(modelPath)
+        # else:
+        #     self.model = load(modelPath)
         self.summary = self.extract(self.model)
 
     def to_json(self,filepath='output.json'):
@@ -457,8 +458,8 @@ if __name__ == '__main__':
     exportdirpath = os.path.join(os.path.dirname(__file__), 'export_csv')
     if(os.path.exists(exportdirpath)):
         shutil.rmtree(exportdirpath)
-    ext = ModelExtractor('Models/mnist_convnet.h5')
-    ext.summary.save_as_csv()
+    ext = ModelExtractor('Models/vit-base-patch16-224/tf_model.h5')
+    
     print(ext.summary)
 
     '''

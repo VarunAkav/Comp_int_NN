@@ -11,7 +11,8 @@ import csv
 modelPaths = dict()
 for filepath in os.listdir('Models'):
     filename, ext = os.path.splitext(filepath)
-    if ext in ['.h5']:
+
+    if ext in ['.h5','']:
         modelPaths[filename] = os.path.join('Models', filepath)
 
 
@@ -27,6 +28,8 @@ class ModelSummary:
         self.divisions = 0
         self.comparisions = 0
         self.connections = 0
+        self.weights = 0
+        self.biases = 0
 
     def __dict__(self) -> dict:
         return{
@@ -36,8 +39,11 @@ class ModelSummary:
             "neurons": self.neurons,
             "additions": self.additions,
             "multiplications": self.multiplications,
+            "divisions": self.divisions,
             "comparasions": self.comparisions,
             "connections": self.connections,
+            "weights": self.weights,
+            "biases": self.biases,
         }
 
     def __repr__(self):
@@ -48,8 +54,11 @@ class ModelSummary:
             "neurons": self.neurons,
             "additions": self.additions,
             "multiplications": self.multiplications,
+            "divisions": self.divisions,
             "comparasions": self.comparisions,
             "connections": self.connections,
+            "weights": self.weights,
+            "biases": self.biases,
         }, indent=4)
 
     def save_as_csv(self):
@@ -80,6 +89,8 @@ class LayerSummary:
         self.divisions = 0
         self.comparisions = 0
         self.connections = 0
+        self.weights = 0
+        self.biases = 0
 
     def __dict__(self) -> dict:
         return {
@@ -92,6 +103,8 @@ class LayerSummary:
             "divisions": self.divisions,
             "comparasions": self.comparisions,
             "connections": self.connections,
+            "weights": self.weights,
+            "biases": self.biases,
         }
 
     def __repr__(self):
@@ -105,6 +118,8 @@ class LayerSummary:
             "divisions": self.divisions,
             "comparasions": self.comparisions,
             "connections": self.connections,
+            "weights": self.weights,
+            "biases": self.biases,
         }, indent=4)
 
 
@@ -140,9 +155,7 @@ class ModelExtractor:
             # 'Resizing': self.resizingSummary
 
         }
-        filename, ext = os.path.splitext(filepath)
-        if ext == '.h5':
-            self.model = load_model(modelPath)
+        self.model = load_model(modelPath)
         self.summary = self.extract(self.model)
 
     def to_json(self,filepath='output.json'):
@@ -176,8 +189,11 @@ class ModelExtractor:
             modelSummary.neurons += summary.neurons
             modelSummary.additions += summary.additions
             modelSummary.multiplications += summary.multiplications
+            modelSummary.divisions += summary.divisions
             modelSummary.comparisions += summary.comparisions
             modelSummary.connections += summary.connections
+            modelSummary.weights += summary.weights
+            modelSummary.biases += summary.biases
             modelSummary.layers.append(summary)
 
         return modelSummary
@@ -215,6 +231,8 @@ class ModelExtractor:
         summary.additions = summary.neurons*channels * kernel_size if layer.use_bias else (summary.neurons-1)*channels*kernel_size
         summary.multiplications = summary.neurons*channels*kernel_size
         summary.connections = summary.neurons*channels*kernel_size
+        summary.weights = int(tf.size(layer.weights[0]))
+        summary.biases = int(tf.size(layer.weights[1]))
 
         return summary
 
@@ -232,6 +250,8 @@ class ModelExtractor:
             summary.additions -= summary.neurons
         summary.multiplications = summary.neurons*kernel_nodes*channels
         summary.connections = summary.neurons*kernel_nodes*channels
+        summary.weights = int(tf.size(layer.weights[0]))
+        summary.biases = int(tf.size(layer.weights[1]))
 
         return summary
 
@@ -248,6 +268,8 @@ class ModelExtractor:
             summary.additions -= summary.neurons
         summary.multiplications = summary.neurons*kernel_nodes*channels
         summary.connections = summary.neurons*kernel_nodes*channels
+        summary.weights = int(tf.size(layer.weights[0]))
+        summary.biases = int(tf.size(layer.weights[1]))
 
     def denseSummary(self, layer: Dense) -> LayerSummary:
         summary = LayerSummary()
@@ -258,6 +280,8 @@ class ModelExtractor:
         summary.additions = layer.input_shape[-1] * summary.neurons if layer.use_bias else layer.input_shape[-1]*(summary.neurons-1)
         summary.multiplications = layer.input_shape[-1]*summary.neurons
         summary.connections = layer.input_shape[-1]*summary.neurons
+        summary.weights = int(tf.size(layer.weights[0]))
+        summary.biases = int(tf.size(layer.weights[1]))
 
         return summary
 
@@ -453,8 +477,8 @@ if __name__ == '__main__':
     exportdirpath = os.path.join(os.path.dirname(__file__), 'export_csv')
     if(os.path.exists(exportdirpath)):
         shutil.rmtree(exportdirpath)
-    ext = ModelExtractor('Models/mnist_convnet.h5')
-    ext.summary.save_as_csv()
+    ext = ModelExtractor('Models/vit-base-patch16-224/tf_model.h5')
+    
     print(ext.summary)
 
     '''

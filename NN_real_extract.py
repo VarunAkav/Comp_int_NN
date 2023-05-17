@@ -477,31 +477,9 @@ if __name__ == '__main__':
     exportdirpath = os.path.join(os.path.dirname(__file__), 'export_csv')
     if(os.path.exists(exportdirpath)):
         shutil.rmtree(exportdirpath)
-    ext = ModelExtractor('Models/vit-base-patch16-224/tf_model.h5')
-    
-    print(ext.summary)
 
-    '''
-    def func(layer):
-        summary = LayerSummary()
-
-        inputShape = layer.input_shape
-
-        summary.class_name = layer.__class__.__name__
-        summary.name = layer.name
-        if(type(layer.output_shape) == 'list'):
-            summary.shape = [eachoutput[1:]
-                              for eachoutput in layer.output_shape]
-        else:
-            summary.shape = layer.output_shape[1:]
-        summary.additions = 
-        summary.multiplications = 
-        summary.connections = 
-        summary.comparasions = 
-        summary.neurons = sum(
-            [reduce(lambda x, y: x*y, summary.shape[i]) for i in range(len(summary.shape))])
-
-
-        return summary
-    
-    '''
+    for model in os.listdir('Models'):
+        modelPath = os.path.join('Models', model)
+        print(modelPath)
+        ext = ModelExtractor(modelPath).extract()
+        ext.save_as_csv()

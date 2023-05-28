@@ -1,0 +1,4 @@
+Layer_no,Layer_class,Layer_name,Neurons,Additions,Multiplications,Divisions,Comparasions,Connections
+0,InputLayer,input_3,1280,0,0,0,0,0
+1,Conv1D,conv1d_4,40,15360,15360,0,0,15360
+2,Conv1D,conv1d_5,60,900,900,0,0,900

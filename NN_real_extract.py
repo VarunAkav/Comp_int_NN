@@ -480,6 +480,11 @@ if __name__ == '__main__':
 
     for model in os.listdir('Models'):
         modelPath = os.path.join('Models', model)
-        print(modelPath)
-        ext = ModelExtractor(modelPath).extract()
-        ext.save_as_csv()
+        # print(modelPath)
+        try:
+            ext = ModelExtractor(modelPath)
+            summary = ext.summary
+            summary.save_as_csv()
+        except:
+            print('Error in model: ', modelPath)
+            continue

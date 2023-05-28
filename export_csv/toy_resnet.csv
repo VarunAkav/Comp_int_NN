@@ -1,0 +1,16 @@
+Layer_no,Layer_class,Layer_name,Neurons,Additions,Multiplications,Divisions,Comparasions,Connections
+0,InputLayer,img,3072,0,0,0,0,0
+1,Conv2D,conv2d,28800,777600,777600,0,0,777600
+2,Conv2D,conv2d_1,50176,14450688,14450688,0,0,14450688
+3,MaxPooling2D,max_pooling2d,5184,0,0,0,41472,46656
+4,Conv2D,conv2d_2,5184,2985984,2985984,0,0,2985984
+5,Conv2D,conv2d_3,5184,2985984,2985984,0,0,2985984
+6,Add,add,0,0,0,0,0,0
+7,Conv2D,conv2d_4,5184,2985984,2985984,0,0,2985984
+8,Conv2D,conv2d_5,5184,2985984,2985984,0,0,2985984
+9,Add,add_1,0,0,0,0,0,0
+10,Conv2D,conv2d_6,3136,1806336,1806336,0,0,1806336
+11,GlobalAveragePooling2D,global_average_pooling2d,64,3072,0,64,0,3136
+12,Dense,dense,256,16384,16384,0,0,16384
+13,Dropout,dropout,0,0,0,0,0,0
+14,Dense,dense_1,10,2560,2560,0,0,2560

@@ -7,6 +7,7 @@ from functools import reduce
 import numpy as np
 import shutil
 import csv
+import sys
 
 modelPaths = dict()
 for filepath in os.listdir('Models'):
@@ -232,7 +233,8 @@ class ModelExtractor:
         summary.multiplications = summary.neurons*channels*kernel_size
         summary.connections = summary.neurons*channels*kernel_size
         summary.weights = int(tf.size(layer.weights[0]))
-        summary.biases = int(tf.size(layer.weights[1]))
+        if layer.use_bias:
+            summary.biases = int(tf.size(layer.weights[1]))
 
         return summary
 
@@ -251,7 +253,8 @@ class ModelExtractor:
         summary.multiplications = summary.neurons*kernel_nodes*channels
         summary.connections = summary.neurons*kernel_nodes*channels
         summary.weights = int(tf.size(layer.weights[0]))
-        summary.biases = int(tf.size(layer.weights[1]))
+        if layer.use_bias:
+            summary.biases = int(tf.size(layer.weights[1]))
 
         return summary
 
@@ -269,7 +272,8 @@ class ModelExtractor:
         summary.multiplications = summary.neurons*kernel_nodes*channels
         summary.connections = summary.neurons*kernel_nodes*channels
         summary.weights = int(tf.size(layer.weights[0]))
-        summary.biases = int(tf.size(layer.weights[1]))
+        if layer.use_bias:
+            summary.biases = int(tf.size(layer.weights[1]))
 
     def denseSummary(self, layer: Dense) -> LayerSummary:
         summary = LayerSummary()
@@ -281,7 +285,8 @@ class ModelExtractor:
         summary.multiplications = layer.input_shape[-1]*summary.neurons
         summary.connections = layer.input_shape[-1]*summary.neurons
         summary.weights = int(tf.size(layer.weights[0]))
-        summary.biases = int(tf.size(layer.weights[1]))
+        if layer.use_bias:
+            summary.biases = int(tf.size(layer.weights[1]))
 
         return summary
 
@@ -487,4 +492,5 @@ if __name__ == '__main__':
             summary.save_as_csv()
         except:
             print('Error in model: ', modelPath)
+            print('Error: ', sys.exc_info()[0])
             continue

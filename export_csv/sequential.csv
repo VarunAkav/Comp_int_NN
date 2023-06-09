@@ -1,9 +1,8 @@
 Layer_no,Layer_class,Layer_name,Neurons,Additions,Multiplications,Divisions,Comparasions,Connections
-0,InputLayer,inputLayer,784,0,0,0,0,0
-1,Conv2D,conv2d,21632,194688,194688,0,0,194688
-2,MaxPooling2D,max_pooling2d,5408,0,0,0,16224,21632
-3,Conv2D,conv2d_1,7744,2230272,2230272,0,0,2230272
-4,MaxPooling2D,max_pooling2d_1,1600,0,0,0,4800,6400
-5,Flatten,flatten,1600,0,0,0,0,1600
-6,Dropout,dropout,0,0,0,0,0,0
-7,Dense,dense,10,16000,16000,0,0,16000
+0,InputLayer,inputLayer,97200,0,0,0,0,0
+1,RandomFlip,random_flip,0,0,0,0,0,0
+2,RandomRotation,random_rotation,0,0,0,0,0,0
+3,RandomTranslation,random_translation,0,0,0,0,0,0
+4,RandomZoom,random_zoom,0,0,0,0,0,0
+5,RandomContrast,random_contrast,0,0,0,0,0,0
+6,GaussianNoise,gaussian_noise,0,0,0,0,0,0

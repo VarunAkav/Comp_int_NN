@@ -1,0 +1,12 @@
+Layer_no,Layer_class,Layer_name,Neurons,Additions,Multiplications,Divisions,Comparasions,Connections
+0,InputLayer,input_2,49152,0,0,0,0,0
+1,Functional,model,1457664,83067392,84475904,0,0,84475904
+2,Sequential,sequential,0,0,0,0,0,0
+3,Concatenate,concatenate,0,0,0,0,0,0
+4,Sequential,sequential_1,0,0,0,0,0,0
+5,Concatenate,concatenate_1,0,0,0,0,0,0
+6,Sequential,sequential_2,0,0,0,0,0,0
+7,Concatenate,concatenate_2,0,0,0,0,0,0
+8,Sequential,sequential_3,0,0,0,0,0,0
+9,Concatenate,concatenate_3,0,0,0,0,0,0
+10,Conv2DTranspose,conv2d_transpose_4,0,0,0,0,0,0

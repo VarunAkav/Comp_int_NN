@@ -1,0 +1,5 @@
+Layer_no,Layer_class,Layer_name,Neurons,Additions,Multiplications,Divisions,Comparasions,Connections
+0,InputLayer,inputLayer,278528,0,0,0,0,0
+1,Conv2DTranspose,conv2d_transpose_3,0,0,0,0,0,0
+2,BatchNormalization,batch_normalization_3,0,0,0,0,0,0
+3,ReLU,re_lu_3,0,0,0,0,0,0

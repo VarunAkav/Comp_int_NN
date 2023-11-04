@@ -1,6 +1,6 @@
 from keras.layers import *
 import tensorflow as tf
-from tensorflow.keras.models import load_model
+from keras.models import load_model
 import json
 import os
 from functools import reduce
@@ -13,7 +13,7 @@ modelPaths = dict()
 for filepath in os.listdir('Models'):
     filename, ext = os.path.splitext(filepath)
 
-    if ext in ['.h5','']:
+    if ext in ['.h5']:
         modelPaths[filename] = os.path.join('Models', filepath)
 
 
